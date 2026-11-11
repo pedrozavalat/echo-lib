@@ -1,7 +1,7 @@
-from typing import Dict, List, Any
+from typing import Any
 
 
-def parse_downloaded_metadata(responses: List[Any]) -> Dict[str, Any]:
+def parse_downloaded_metadata(responses: list[Any]) -> dict[str, Any]:
     return {
         x["rs_name"]: {
             "destination_path": x["destination_path"],

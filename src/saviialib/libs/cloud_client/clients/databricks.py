@@ -1,4 +1,5 @@
-from typing import Any
+from types import TracebackType
+from typing import Self
 from urllib.parse import quote
 
 from aiohttp import ClientError, ClientSession
@@ -33,12 +34,15 @@ class DatabricksClient(CloudClientContract):
             "Accept": "application/json",
         }
 
-    async def __aenter__(self) -> "DatabricksClient":
+    async def __aenter__(self) -> Self:
         self.session = ClientSession(base_url=self.host_url, headers=self.base_headers)
         return self
 
     async def __aexit__(
-        self, _exc_type: type[BaseException], _exc_val: BaseException, _exc_tb: Any
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc_val: BaseException | None,
+        _exc_tb: TracebackType | None,
     ) -> None:
         if self.session:
             await self.session.close()

@@ -1,6 +1,6 @@
 import os
 from logging import Logger
-from typing import Any, Dict, Set
+from typing import Any
 
 from saviialib.general_types.error_types.api.saviia_api_error_types import (
     CloudClientFetchingError,
@@ -65,7 +65,7 @@ class ThiesInventoryComponent(ThiesComponent):
 
     async def get_local_summary(
         self, ensure_structure: bool = True, require_root: bool = True
-    ) -> Dict[str, int | Set[str] | Dict[str, int]]:
+    ) -> dict[str, int | set[str] | dict[str, int]]:
         method_name = "get_local_summary"
         if ensure_structure:
             await self.directories.ensure_local_structure(require_root=require_root)
@@ -91,7 +91,7 @@ class ThiesInventoryComponent(ThiesComponent):
             for category, entries in entries_by_category.items()
             for name, size in entries
         }
-        result: Dict[str, int | Set[str] | Dict[str, int]] = {
+        result: dict[str, int | set[str] | dict[str, int]] = {
             "filenames": filenames,
             "file_sizes": file_sizes,
             "count_avg_files": len(entries_by_category["AVG"]),
@@ -108,7 +108,7 @@ class ThiesInventoryComponent(ThiesComponent):
         )
         return result
 
-    async def get_local_files(self) -> Set[tuple[str, int]]:
+    async def get_local_files(self) -> set[tuple[str, int]]:
         summary = await self.get_local_summary(
             ensure_structure=False,
             require_root=False,
@@ -121,7 +121,7 @@ class ThiesInventoryComponent(ThiesComponent):
 
     async def get_ftp_files(
         self, ftp_folders: list[str] | None = None
-    ) -> Set[tuple[str, int]]:
+    ) -> set[tuple[str, int]]:
         method_name = "get_ftp_files"
         if self.ftp_client is None:
             raise FtpClientError("FTP client was not initialized.")
@@ -134,7 +134,7 @@ class ThiesInventoryComponent(ThiesComponent):
         )
         folder_path = ""
         try:
-            files_inventory: Set[tuple[str, int]] = set()
+            files_inventory: set[tuple[str, int]] = set()
             for folder_path in folders:
                 category = self.paths.category_from_ftp_path(folder_path)
                 files = await self.ftp_client.list_files(
@@ -185,7 +185,7 @@ class ThiesInventoryComponent(ThiesComponent):
         self,
         ensure_structure: bool = False,
         wrap_errors: bool = True,
-    ) -> Set[tuple[str, int]]:
+    ) -> set[tuple[str, int]]:
         method_name = "get_cloud_files"
         if self.cloud_client is None:
             raise CloudClientError("SAVIIA Cloud client provider was not initialized.")
@@ -202,7 +202,7 @@ class ThiesInventoryComponent(ThiesComponent):
         try:
             if ensure_structure:
                 await self.directories.ensure_cloud_structure()
-            cloud_files: Set[tuple[str, int]] = set()
+            cloud_files: set[tuple[str, int]] = set()
             async with self.cloud_client:
                 for category in THIES_CATEGORIES:
                     relative_url = self.paths.get_cloud_folder(category)

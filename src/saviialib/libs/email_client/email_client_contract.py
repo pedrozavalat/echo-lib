@@ -13,4 +13,3 @@ class EmailClientContract(ABC):
         :param args: SendEmailArgs containing recipient, subject, body, and content type
         :return: dict with send result metadata
         """
-        pass

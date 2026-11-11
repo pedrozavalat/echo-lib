@@ -1,11 +1,11 @@
+from deprecated import deprecated
+
+from saviialib.general_types.api.saviia_shakes_api_types import SaviiaShakesConfig
+
 from .controllers.get_miniseed_files import (
     GetMiniseedFilesController,
     GetMiniseedFilesControllerInput,
 )
-from saviialib.general_types.api.saviia_shakes_api_types import SaviiaShakesConfig
-
-from typing import Dict
-from deprecated import deprecated
 
 
 class ShakesAPI:
@@ -15,7 +15,7 @@ class ShakesAPI:
         self.config = config
 
     @deprecated
-    async def get_miniseed_files(self, raspberry_shakes: Dict[str, str]):
+    async def get_miniseed_files(self, raspberry_shakes: dict[str, str]):
         """Download the MiniSEED files from the SFTP Server provided by each Raspberry Shake.
         Args:
             raspberry_shakes (dict): Dictionary where the key is the name of the Raspberry Shake,

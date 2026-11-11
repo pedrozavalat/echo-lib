@@ -1,18 +1,18 @@
 # External libraries
 import logging
 
-# Internal modules
-from saviialib.libs.log_client.utils.log_client_utils import format_message
 from saviialib.libs.log_client.log_client_contract import LogClientContract
 from saviialib.libs.log_client.types.log_client_types import (
+    DebugArgs,
     ErrorArgs,
     InfoArgs,
     LogClientArgs,
-    DebugArgs,
     WarningArgs,
 )
 
-from saviialib.libs.zero_dependency.utils.datetime_utils import today, datetime_to_str
+# Internal modules
+from saviialib.libs.log_client.utils.log_client_utils import format_message
+from saviialib.libs.zero_dependency.utils.datetime_utils import datetime_to_str, today
 
 
 class LoggingClient(LogClientContract):

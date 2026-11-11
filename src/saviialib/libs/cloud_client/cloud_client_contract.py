@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
 from .types.cloud_client_types import (
+    CloudClientCreateFolderArgs,
     CloudClientListFilesArgs,
     CloudClientListFoldersArgs,
-    CloudClientUploadFileArgs,
-    CloudClientCreateFolderArgs,
     CloudClientResolveUrlArgs,
+    CloudClientUploadFileArgs,
 )
 
 
@@ -13,7 +13,7 @@ class CloudClientContract(ABC):
     @property
     def base_url(self):
         pass
-    
+
     @abstractmethod
     async def list_files(self, args: CloudClientListFilesArgs) -> list:
         pass

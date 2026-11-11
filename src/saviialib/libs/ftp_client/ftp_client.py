@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from .clients.aioftp_client import AioFTPClient
 from .clients.ftplib_client import FtplibClient
 from .ftp_client_contract import FTPClientContract
@@ -5,7 +7,7 @@ from .types.ftp_client_types import FtpClientInitArgs, FtpListFilesArgs, FtpRead
 
 
 class FTPClient(FTPClientContract):
-    CLIENTS = {"aioftp_client", "ftplib_client"}
+    CLIENTS: ClassVar[set[str]] = {"aioftp_client", "ftplib_client"}
 
     def __init__(self, args: FtpClientInitArgs) -> None:
         if args.client_name not in FTPClient.CLIENTS:

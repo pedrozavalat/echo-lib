@@ -6,6 +6,17 @@ from saviialib.general_types.api.saviia_api_types import (
     DatabricksConfig,
     FtpClientConfig,
 )
+from saviialib.general_types.error_types.api.saviia_api_error_types import (
+    ValidationError,
+)
+from saviialib.libs.cloud_client import (
+    CloudClient,
+    CloudClientCreateFolderArgs,
+    CloudClientInitArgs,
+    CloudClientListFilesArgs,
+    CloudClientListFoldersArgs,
+    CloudClientUploadFileArgs,
+)
 from saviialib.libs.directory_client import DirectoryClient, DirectoryClientArgs
 from saviialib.libs.email_client import EmailClient, EmailClientInitArgs, SendEmailArgs
 from saviialib.libs.files_client import (
@@ -43,14 +54,6 @@ from saviialib.libs.schema_validator_client import SchemaValidatorClient
 from saviialib.libs.sftp_client import (
     SFTPClient,
     SFTPClientInitArgs,
-)
-from saviialib.libs.cloud_client import (
-    CloudClient,
-    CloudClientCreateFolderArgs,
-    CloudClientInitArgs,
-    CloudClientListFilesArgs,
-    CloudClientListFoldersArgs,
-    CloudClientUploadFileArgs,
 )
 from saviialib.libs.weather_client import (
     ForecastArgs,
@@ -131,9 +134,7 @@ def _databricks_config() -> DatabricksConfig:
         (
             "saviialib.libs.cloud_client.cloud_client",
             CloudClient,
-            CloudClientInitArgs(
-                config=_databricks_config(), client_name="databricks"
-            ),
+            CloudClientInitArgs(config=_databricks_config(), client_name="databricks"),
             "DatabricksClient",
             "databricks",
         ),
@@ -359,12 +360,18 @@ async def test_should_delegate_cloud_client_calls(monkeypatch):
     assert client.base_url == "https://workspace.azuredatabricks.net"
     assert await client.__aenter__() == "ctx"
     await client.__aexit__(None, None, None)
-    assert await client.list_files(
-        CloudClientListFilesArgs(folder_relative_url="/Volumes/x")
-    ) == []
-    assert await client.list_folders(
-        CloudClientListFoldersArgs(folder_relative_url="/Volumes/x")
-    ) == []
+    assert (
+        await client.list_files(
+            CloudClientListFilesArgs(folder_relative_url="/Volumes/x")
+        )
+        == []
+    )
+    assert (
+        await client.list_folders(
+            CloudClientListFoldersArgs(folder_relative_url="/Volumes/x")
+        )
+        == []
+    )
     assert await client.upload_file(
         CloudClientUploadFileArgs(
             folder_relative_url="/Volumes/x",
@@ -431,7 +438,7 @@ def test_should_raise_for_invalid_schema_validator_payload():
     }
     client = SchemaValidatorClient(schema=schema)
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         client.validate({"name": 123})
 
 

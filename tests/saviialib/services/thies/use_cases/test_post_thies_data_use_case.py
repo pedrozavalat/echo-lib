@@ -1,16 +1,16 @@
-import tempfile
-import unittest
 import os
 import sys
+import tempfile
 import types
+import unittest
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 if "pandas" not in sys.modules:
     pandas_stub = types.ModuleType("pandas")
-    setattr(pandas_stub, "DataFrame", type("DataFrame", (), {}))
-    setattr(pandas_stub, "Series", type("Series", (), {}))
-    setattr(pandas_stub, "read_csv", lambda *args, **kwargs: None)
+    pandas_stub.DataFrame = type("DataFrame", (), {})
+    pandas_stub.Series = type("Series", (), {})
+    pandas_stub.read_csv = lambda *args, **kwargs: None
     sys.modules["pandas"] = pandas_stub
 if "numpy" not in sys.modules:
     sys.modules["numpy"] = types.ModuleType("numpy")
@@ -22,7 +22,6 @@ from saviialib.general_types.error_types.api.saviia_api_error_types import (
     ThiesConnectionError,
 )
 from saviialib.general_types.error_types.common import EmptyDataError
-
 from saviialib.services.thies.use_cases.post_thies_data import PostThiesDataUseCase
 from saviialib.services.thies.use_cases.types.post_thies_data_types import (
     PostThiesDataUseCaseInput,
@@ -49,9 +48,7 @@ class TestPostThiesDataUseCase(unittest.IsolatedAsyncioTestCase):
         self.ftp_client.list_files = AsyncMock()
         self.ftp_client.read_file = AsyncMock(side_effect=self._fake_ftp_read_file)
         self.cloud_client = MagicMock()
-        self.cloud_client.__aenter__ = AsyncMock(
-            return_value=self.cloud_client
-        )
+        self.cloud_client.__aenter__ = AsyncMock(return_value=self.cloud_client)
         self.cloud_client.__aexit__ = AsyncMock(return_value=None)
         self.cloud_client.create_folder = AsyncMock(return_value=None)
         self.cloud_client.list_files = AsyncMock()
@@ -134,8 +131,7 @@ class TestPostThiesDataUseCase(unittest.IsolatedAsyncioTestCase):
             for call in self.cloud_client.create_folder.await_args_list
         ]
         cloud_thies_path = (
-            "/Volumes/catalog/schema/volume/"
-            f"{Path(self.local_backup_path).name}/thies"
+            f"/Volumes/catalog/schema/volume/{Path(self.local_backup_path).name}/thies"
         )
         self.assertCountEqual(
             folder_urls,
@@ -161,8 +157,7 @@ class TestPostThiesDataUseCase(unittest.IsolatedAsyncioTestCase):
             for call in self.cloud_client.upload_file.await_args_list
         ]
         cloud_thies_path = (
-            "/Volumes/catalog/schema/volume/"
-            f"{Path(self.local_backup_path).name}/thies"
+            f"/Volumes/catalog/schema/volume/{Path(self.local_backup_path).name}/thies"
         )
         self.assertEqual(
             upload_urls,
@@ -198,9 +193,7 @@ class TestPostThiesDataUseCase(unittest.IsolatedAsyncioTestCase):
     async def test_should_fetch_cloud_files_successfully(self):
         async def list_files(args):
             if args.folder_relative_url.endswith("/AVG"):
-                return [
-                    {"name": "avg.bin", "file_size": 10, "is_directory": False}
-                ]
+                return [{"name": "avg.bin", "file_size": 10, "is_directory": False}]
             return [{"name": "ext.bin", "file_size": 20, "is_directory": False}]
 
         self.cloud_client.list_files = AsyncMock(side_effect=list_files)

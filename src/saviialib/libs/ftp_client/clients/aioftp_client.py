@@ -1,5 +1,6 @@
 from aioftp import Client
 from aioftp.errors import StatusCodeError
+
 from saviialib.libs.ftp_client.ftp_client_contract import (
     FTPClientContract,
 )
@@ -38,7 +39,7 @@ class AioFTPClient(FTPClientContract):
             await self._async_start()
             files = []
             async for path, info in self.client.list(args.path, recursive=False):
-                files.append((path.name, int((info.get("size", 0)))))
+                files.append((path.name, int(info.get("size", 0))))
             return files
         except StatusCodeError as error:
             raise ConnectionAbortedError(error)

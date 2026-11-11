@@ -1,26 +1,26 @@
 import sys
 import types
 import unittest
-from unittest.mock import AsyncMock, patch, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 if "pandas" not in sys.modules:
     pandas_stub = types.ModuleType("pandas")
-    setattr(pandas_stub, "DataFrame", type("DataFrame", (), {}))
-    setattr(pandas_stub, "Series", type("Series", (), {}))
-    setattr(pandas_stub, "read_csv", lambda *args, **kwargs: None)
+    pandas_stub.DataFrame = type("DataFrame", (), {})
+    pandas_stub.Series = type("Series", (), {})
+    pandas_stub.read_csv = lambda *args, **kwargs: None
     sys.modules["pandas"] = pandas_stub
 if "numpy" not in sys.modules:
     sys.modules["numpy"] = types.ModuleType("numpy")
 
 from saviialib import SaviiaAPI, SaviiaAPIConfig
+from saviialib.services.thies.controllers.detect_failures import (
+    DetectFailuresControllerOutput,
+)
 from saviialib.services.thies.controllers.get_thies_data import (
     GetThiesDataControllerOutput,
 )
 from saviialib.services.thies.controllers.post_thies_data import (
     PostThiesDataControllerOutput,
-)
-from saviialib.services.thies.controllers.detect_failures import (
-    DetectFailuresControllerOutput,
 )
 
 

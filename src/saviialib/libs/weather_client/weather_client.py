@@ -1,13 +1,15 @@
-from .weather_client_contract import WeatherClientContract
+from typing import ClassVar
+
+from .clients.openmeteo.openmeteo_client import OpenmeteoClient
 from .types.weather_client_types import (
     ForecastArgs,
     WeatherClientInitArgs,
 )
-from .clients.openmeteo.openmeteo_client import OpenmeteoClient
+from .weather_client_contract import WeatherClientContract
 
 
 class WeatherClient(WeatherClientContract):
-    CLIENTS = {"open_meteo"}
+    CLIENTS: ClassVar[set[str]] = {"open_meteo"}
 
     def __init__(self, args: WeatherClientInitArgs):
         if args.client_name not in WeatherClient.CLIENTS:

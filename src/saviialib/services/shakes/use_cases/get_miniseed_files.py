@@ -1,20 +1,22 @@
 import asyncio
-from .types.get_miniseed_files_types import (
-    GetMiniseedFilesUseCaseInput,
-    GetMiniseedFilesUseCaseOutput,
-)
-from typing import Dict, Any
-from saviialib.libs.sftp_client import (
-    SFTPClient,
-    SFTPClientInitArgs,
-    ListfilesArgs,
-    DownloadfilesArgs,
-)
-from saviialib.libs.directory_client import DirectoryClient, DirectoryClientArgs
+from typing import Any
+
 from saviialib.general_types.error_types.api.saviia_api_error_types import (
     ShakesNoContentError,
 )
 from saviialib.general_types.error_types.common.common_types import SftpClientError
+from saviialib.libs.directory_client import DirectoryClient, DirectoryClientArgs
+from saviialib.libs.sftp_client import (
+    DownloadfilesArgs,
+    ListfilesArgs,
+    SFTPClient,
+    SFTPClientInitArgs,
+)
+
+from .types.get_miniseed_files_types import (
+    GetMiniseedFilesUseCaseInput,
+    GetMiniseedFilesUseCaseOutput,
+)
 from .utils.get_miniseed_files_utils import parse_downloaded_metadata
 
 
@@ -24,7 +26,7 @@ class GetMiniseedFilesUseCase:
         self.username = input.username
         self.ssh_key_path = input.ssh_key_path
         self.port = input.port
-        self.raspberry_shakes: Dict[str, str] = input.raspberry_shakes
+        self.raspberry_shakes: dict[str, str] = input.raspberry_shakes
         self.dir_client = DirectoryClient(DirectoryClientArgs("os_client"))
 
     def _initialize_sftp_client(self, ip_address: str):
@@ -39,7 +41,7 @@ class GetMiniseedFilesUseCase:
             )
         )
 
-    async def _download_mseed_file(self, rs_name: str, rs_ip: str) -> Dict[str, Any]:
+    async def _download_mseed_file(self, rs_name: str, rs_ip: str) -> dict[str, Any]:
         DEST_BASE_DIR = "./rshakes-mseed-files"
         SOURCE_PATH = self.dir_client.join_paths("opt", "data", "archive")
         local_path = self.dir_client.join_paths(DEST_BASE_DIR, rs_name)

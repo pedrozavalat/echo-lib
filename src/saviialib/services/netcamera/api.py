@@ -1,9 +1,11 @@
+from typing import Any
+
+from saviialib.general_types.api.saviia_netcamera_api_types import SaviiaNetcameraConfig
+
 from .controllers.get_camera_rates import (
     GetCameraRatesController,
     GetCameraRatesControllerInput,
 )
-from typing import Dict, Any
-from saviialib.general_types.api.saviia_netcamera_api_types import SaviiaNetcameraConfig
 
 
 class SaviiaNetcameraAPI:
@@ -12,7 +14,7 @@ class SaviiaNetcameraAPI:
     def __init__(self, config: SaviiaNetcameraConfig):
         self.config = config
 
-    async def get_camera_rates(self) -> Dict[str, Any]:
+    async def get_camera_rates(self) -> dict[str, Any]:
         """Returns the records a photos rates for any network camera installed at the station.
 
         The capturation is defined using meteorologic metrics from OpenMeteo Client,

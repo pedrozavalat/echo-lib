@@ -1,8 +1,8 @@
-from typing import Any, Dict
+from typing import Any
 
+from saviialib.general_types.api.saviia_backup_api_types import SaviiaBackupConfig
 
 from .controllers.export_files import ExportFilesController, ExportFilesControllerInput
-from saviialib.general_types.api.saviia_backup_api_types import SaviiaBackupConfig
 
 
 class SaviiaBackupAPI:
@@ -15,7 +15,7 @@ class SaviiaBackupAPI:
 
     async def export_files(
         self, local_folder_path: str, cloud_provider_destination_path: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Synchronize only outdated/missing files from a local backup folder to cloud storage.
 
         The local folder is resolved relative to `self.config.local_backup_path`.

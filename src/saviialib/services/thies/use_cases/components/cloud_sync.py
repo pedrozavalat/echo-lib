@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import Any, Dict, List, Set, cast
+from typing import Any, cast
 
 from saviialib.general_types.error_types.api.saviia_api_error_types import (
     CloudClientUploadError,
@@ -28,14 +28,14 @@ class ThiesCloudSyncComponent(ThiesComponent):
         self.files_client = files_client
         self.cloud_client = cloud_client
 
-    async def read_local_files(self, file_keys: Set[str]) -> Dict[str, bytes]:
+    async def read_local_files(self, file_keys: set[str]) -> dict[str, bytes]:
         method_name = "read_local_files"
         self._debug(
             method_name,
             LogStatus.STARTED,
             f"Loading content for {len(file_keys)} pending files",
         )
-        contents: Dict[str, bytes] = {}
+        contents: dict[str, bytes] = {}
         for file_key in file_keys:
             category_value, filename = file_key.split("_", 1)
             category = cast(ThiesCategory, category_value)
@@ -51,12 +51,12 @@ class ThiesCloudSyncComponent(ThiesComponent):
             )
         return contents
 
-    async def upload_files(self, files: Dict[str, bytes]) -> Dict[str, List[str]]:
+    async def upload_files(self, files: dict[str, bytes]) -> dict[str, list[str]]:
         method_name = "upload_files"
         if self.cloud_client is None:
             raise CloudClientError("SAVIIA Cloud client provider was not initialized.")
 
-        results: Dict[str, List[str]] = {"failed_files": [], "new_files": []}
+        results: dict[str, list[str]] = {"failed_files": [], "new_files": []}
         self._debug(
             method_name,
             LogStatus.STARTED,
@@ -87,9 +87,7 @@ class ThiesCloudSyncComponent(ThiesComponent):
                         f"Failed to upload '{filename}' to '{destination}'",
                         error,
                     )
-                    results["failed_files"].append(
-                        f"{file_key} (Error: {str(error)})"
-                    )
+                    results["failed_files"].append(f"{file_key} (Error: {error!s})")
 
         if results["failed_files"]:
             raise CloudClientUploadError(

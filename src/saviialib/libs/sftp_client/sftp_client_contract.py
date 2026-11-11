@@ -1,11 +1,11 @@
-from .types.sftp_client_types import ListfilesArgs, DownloadfilesArgs
 from abc import ABC, abstractmethod
-from typing import List
+
+from .types.sftp_client_types import DownloadfilesArgs, ListfilesArgs
 
 
 class SFTPClientContract(ABC):
     @abstractmethod
-    async def list_files(self, args: ListfilesArgs) -> List[str]:
+    async def list_files(self, args: ListfilesArgs) -> list[str]:
         pass
 
     @abstractmethod

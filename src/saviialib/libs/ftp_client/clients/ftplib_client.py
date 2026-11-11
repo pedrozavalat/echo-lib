@@ -1,6 +1,7 @@
-import ftplib
 import asyncio
+import ftplib
 from io import BytesIO
+
 from saviialib.libs.ftp_client.ftp_client_contract import FTPClientContract
 from saviialib.libs.ftp_client.types.ftp_client_types import (
     FtpClientInitArgs,
@@ -30,7 +31,7 @@ class FtplibClient(FTPClientContract):
         except Exception as error:
             raise ConnectionError(
                 f"General connection for {self.host}:{self.port}. {error}"
-            )
+            ) from error
 
     async def list_files(self, args: FtpListFilesArgs) -> list[tuple[str, int]]:
         """List files with name and size (like AioFTPClient)."""
@@ -48,7 +49,7 @@ class FtplibClient(FTPClientContract):
                         continue
                     size = int(facts.get("size", 0))
                     files_with_sizes.append((filename, size))
-            except Exception:
+            except (*ftplib.all_errors, ValueError):
                 # Fall back to NLST + SIZE for FTP servers without MLSD support.
                 filenames = await asyncio.to_thread(self.client.nlst)
                 for filename in filenames:
@@ -56,13 +57,13 @@ class FtplibClient(FTPClientContract):
                         continue
                     try:
                         size = await asyncio.to_thread(self.client.size, filename)
-                    except Exception:
+                    except ftplib.all_errors:
                         size = 0
                     files_with_sizes.append((filename, int(size)))  # type: ignore
 
             return files_with_sizes
         except Exception as error:
-            raise ConnectionAbortedError(error)
+            raise ConnectionAbortedError(error) from error
 
     async def read_file(self, args: FtpReadFileArgs) -> bytes:
         await self._async_start()

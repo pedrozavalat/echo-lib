@@ -56,7 +56,7 @@ config = SaviiaAPIConfig(
     sharepoint_client_secret=SHAREPOINT_CLIENT_SECRET,
     sharepoint_tenant_id=SHAREPOINT_TENANT_ID,
     sharepoint_tenant_name=SHAREPOINT_TENANT_NAME,
-    sharepoint_site_name=SHAREPOINT_SITE_NAME
+    sharepoint_site_name=SHAREPOINT_SITE_NAME,
 )
 ```
 ```python
@@ -68,7 +68,7 @@ api_client = SaviiaAPI(config)
 ### Access THIES Data Logger Services
 To interact with the THIES Data Logger services, you can access the `thies` attribute of the `SaviiaAPI` instance:
 ```python
-thies_service = api_client.get('thies')
+thies_service = api_client.get("thies")
 ```
 This instance provides methods to interact with the THIES Data Logger. Currently, it includes the main method for extracting files from the FTP server and uploading them to SharePoint.
 
@@ -76,10 +76,13 @@ This instance provides methods to interact with the THIES Data Logger. Currently
 The library provides a method to extract and synchronize THIES Data Logger files with the Microsoft SharePoint client. This method downloads files from the FTP server and uploads them to the specified SharePoint folder:
 ```python 
 import asyncio
+
+
 async def main():
     # Before calling this method, you must have initialised the THIES service class ...
     response = await thies_service.update_thies_data()
     return response
+
 
 asyncio.run(main())
 ```
@@ -89,6 +92,7 @@ You can check whether THIES data needs syncing or backup by calling `get_thies_d
 
 ```python
 import asyncio
+
 
 async def main():
     response = await thies_service.get_thies_data(
@@ -100,6 +104,7 @@ async def main():
     )
     return response
 
+
 asyncio.run(main())
 ```
 
@@ -108,6 +113,7 @@ If you already computed whether to sync or backup externally, call `post_thies_d
 
 ```python
 import asyncio
+
 
 async def main():
     response = await thies_service.post_thies_data(
@@ -123,6 +129,7 @@ async def main():
     )
     return response
 
+
 asyncio.run(main())
 ```
 
@@ -134,12 +141,13 @@ Use `detect_failures` to scan a local backup folder for missing or corrupt THIES
 ```python
 import asyncio
 
+
 async def main():
     response = await thies_service.detect_failures(
-        local_backup_source_path="saviia-local-backup",
-        n_days=7
+        local_backup_source_path="saviia-local-backup", n_days=7
     )
     return response
+
 
 asyncio.run(main())
 ```
@@ -147,7 +155,7 @@ asyncio.run(main())
 ### Access Backup Services
 To interact with the Backup services, you can access the `backup` attribute of the `SaviiaAPI` instance:
 ```python
-backup_service = api_client.get('backup')
+backup_service = api_client.get("backup")
 ```
 This instance provides methods to interact with the Backup services. Currently, it includes the main method for creating backups of specified directories in a local folder from Home Assistant environment. Then each backup file is uploaded to a Microsoft SharePoint folder.
 
@@ -156,13 +164,17 @@ The library provides a method which creates a backup of a specified directory in
 
 ```python
 import asyncio
+
+
 async def main():
     # Before calling this method, you must have initialised the Backup service class ...
     response = await backup_service.upload_backup_to_sharepoint(
         local_backup_path=LOCAL_BACKUP_PATH,
-        sharepoint_folder_path=SHAREPOINT_FOLDER_PATH
+        sharepoint_folder_path=SHAREPOINT_FOLDER_PATH,
     )
     return response
+
+
 asyncio.run(main())
 ```
 **Notes:**
@@ -176,15 +188,17 @@ Example usage:
 ```python
 import asyncio
 
+
 async def main():
     # backup_service was obtained from SaviiaAPI as shown above
     # `local_folder_path` is a relative path under your configured local backup root,
     # for example: "thies/AVG"
     response = await backup_service.export_files(
         local_folder_path="thies/AVG",
-        sharepoint_destination_path="Shared%20Documents/General/Test_Raspberry/saviia-local-backup/thies/AVG"
+        sharepoint_destination_path="Shared%20Documents/General/Test_Raspberry/saviia-local-backup/thies/AVG",
     )
     return response
+
 
 asyncio.run(main())
 ```
@@ -208,18 +222,21 @@ Returns photo and video capture rates for a camera installed at a given geograph
 ```python 
 import asyncio
 
+
 async def main():
     lat, lon = 10.511223, 20.123123
     camera_rates = await netcamera_service.get_camera_rates(latitude=lat, longitude=lon)
     return camera_rates
+
+
 asyncio.run(main())
 ```
 Example output:
 ```python 
 {
-    "status": "A",          # B or C
-    "photo_rate": number,   # in minutes
-    "video_rate": number    # in minutes
+    "status": "A",  # B or C
+    "photo_rate": number,  # in minutes
+    "video_rate": number,  # in minutes
 }
 ```
 #### Description:
@@ -241,7 +258,7 @@ The status variable is classified based on weather conditions (currently, precip
 ### Access Task System Services
 To interact with the Task System services, you can access the `tasks` attribute of the `SaviiaAPI` instance:
 ```python
-tasks_service = api_client.get('tasks')
+tasks_service = api_client.get("tasks")
 ```
 This instance provides methods to manage tasks in specified channels. Note that this service requires an existing bot to be set up in the Discord server to function properly.
 
@@ -262,6 +279,7 @@ Create a new task in a Discord channel with the following properties:
 ```python
 import asyncio
 
+
 async def main():
     response = await tasks_service.create_task(
         task={
@@ -272,16 +290,13 @@ async def main():
             "assignee": "user_name",
             "category": "work",
         },
-         images=[
-            {
-                "name": "image.png",
-                "type": "image/png",
-                "data": "base64_encoded_data"
-            }
+        images=[
+            {"name": "image.png", "type": "image/png", "data": "base64_encoded_data"}
         ],
-        config=config
+        config=config,
     )
     return response
+
 
 asyncio.run(main())
 ```
@@ -296,6 +311,7 @@ Update an existing task or mark it as completed. The task will be reacted with â
 ```python
 import asyncio
 
+
 async def main():
     response = await tasks_service.update_task(
         task={
@@ -305,12 +321,13 @@ async def main():
             "due_date": "2024-12-31T23:59:59Z",
             "priority": 2,
             "assignee": "updated_user_name",
-            "category": "work"
-        }, # Must contain all the attributes of the task
+            "category": "work",
+        },  # Must contain all the attributes of the task
         completed=True,
-        config=config
+        config=config,
     )
     return response
+
 
 asyncio.run(main())
 ```
@@ -321,12 +338,11 @@ Delete an existing task from a Discord channel by providing its ID:
 ```python
 import asyncio
 
+
 async def main():
-    response = await tasks_service.delete_task(
-        task_id="task_id",
-        config=config
-    )
+    response = await tasks_service.delete_task(task_id="task_id", config=config)
     return response
+
 
 asyncio.run(main())
 ```
@@ -336,6 +352,7 @@ Retrieve tasks from a Discord channel with optional filtering and sorting:
 ```python
 import asyncio
 
+
 async def main():
     response = await tasks_service.get_tasks(
         params={
@@ -343,11 +360,12 @@ async def main():
             "completed": False,
             "fields": ["title", "due_date", "priority"],
             "after": 1000000,
-            "before": 2000000
+            "before": 2000000,
         },
-        config=config
+        config=config,
     )
     return response
+
 
 asyncio.run(main())
 ```
@@ -363,11 +381,13 @@ To retrieve pending (uncompleted) tasks and optionally download attachments or t
 ```python
 import asyncio
 
+
 async def main():
     # download: if True, attachments for pending tasks will be downloaded
     # notify: if True, the configured bot will send notifications for pending tasks
     response = await tasks_service.get_pending_tasks(download=False, notify=False)
     return response
+
 
 asyncio.run(main())
 ```

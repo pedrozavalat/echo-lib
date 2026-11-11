@@ -1,19 +1,20 @@
-from .clients.sharepoint_rest_api import SharepointRestAPI
-from .clients.databricks import DatabricksClient
+from typing import ClassVar
 
+from .clients.databricks import DatabricksClient
+from .clients.sharepoint_rest_api import SharepointRestAPI
 from .cloud_client_contract import CloudClientContract
 from .types.cloud_client_types import (
+    CloudClientCreateFolderArgs,
     CloudClientInitArgs,
     CloudClientListFilesArgs,
     CloudClientListFoldersArgs,
+    CloudClientResolveUrlArgs,
     CloudClientUploadFileArgs,
-    CloudClientCreateFolderArgs,
-    CloudClientResolveUrlArgs
 )
 
 
 class CloudClient(CloudClientContract):
-    CLIENTS = {"sharepoint_rest_api", "databricks"}
+    CLIENTS: ClassVar[set[str]] = {"sharepoint_rest_api", "databricks"}
 
     def __init__(self, args: CloudClientInitArgs):
         if args.client_name not in self.CLIENTS:
@@ -27,7 +28,7 @@ class CloudClient(CloudClientContract):
     @property
     def base_url(self):
         return self.client_obj.base_url
-    
+
     @property
     def tenant_id(self):
         return getattr(self.client_obj, "tenant_id", None)
@@ -73,6 +74,6 @@ class CloudClient(CloudClientContract):
 
     async def create_folder(self, args: CloudClientCreateFolderArgs) -> dict:
         return await self.client_obj.create_folder(args)
-    
+
     def resolve_url(self, args: CloudClientResolveUrlArgs) -> str:
         return self.client_obj.resolve_url(args)

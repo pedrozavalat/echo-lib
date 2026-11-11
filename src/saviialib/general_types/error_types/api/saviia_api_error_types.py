@@ -55,7 +55,6 @@ class CloudClientDirectoryError(Exception):
         )
 
 
-
 class CloudClientUploadError(Exception):
     """Raised when there is an error uploading files to the Microsoft SharePoint folder."""
 

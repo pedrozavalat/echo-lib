@@ -1,7 +1,7 @@
 from .common_types import (
+    CloudClientError,
     EmptyDataError,
     FtpClientError,
-    CloudClientError,
 )
 
-__all__ = ["EmptyDataError", "CloudClientError", "FtpClientError"]
+__all__ = ["CloudClientError", "EmptyDataError", "FtpClientError"]

@@ -1,25 +1,26 @@
-from typing import Any
 import json
+import ssl
+from types import TracebackType
+from typing import Self
+
+import certifi
 from aiohttp import ClientError, ClientSession, TCPConnector
 from dotenv import load_dotenv
-import ssl
-import certifi
 
 from saviialib.libs.cloud_client.cloud_client_contract import (
     CloudClientContract,
 )
 from saviialib.libs.cloud_client.types.cloud_client_types import (
-    CloudClientListFilesArgs,
-    CloudClientListFoldersArgs,
-    CloudClientUploadFileArgs,
     CloudClientCreateFolderArgs,
     CloudClientInitArgs,
+    CloudClientListFilesArgs,
+    CloudClientListFoldersArgs,
     CloudClientResolveUrlArgs,
+    CloudClientUploadFileArgs,
 )
 
 load_dotenv()
 ssl_context = ssl.create_default_context(cafile=certifi.where())
-
 
 
 class SharepointRestAPI(CloudClientContract):
@@ -43,15 +44,13 @@ class SharepointRestAPI(CloudClientContract):
         }
         missing = [key for key, value in required.items() if not value]
         if missing:
-            raise ValueError(
-                f"Missing SharePoint config fields: {', '.join(missing)}"
-            )
+            raise ValueError(f"Missing SharePoint config fields: {', '.join(missing)}")
 
     @property
     def base_url(self):
         site_url = f"https://{self.tenant_name}.sharepoint.com"
         return f"{site_url}/sites/{self.site_name}/_api/"
-    
+
     async def _load_form_digest_value(self) -> str:
         try:
             response = await self.session.post("contextinfo")
@@ -87,7 +86,7 @@ class SharepointRestAPI(CloudClientContract):
                 "access_token": response_json["access_token"],
             }
 
-    async def __aenter__(self) -> "SharepointRestAPI":
+    async def __aenter__(self) -> Self:
         try:
             self.credentials = await self._load_credentials()
             site_url = f"https://{self.tenant_name}.sharepoint.com"
@@ -107,7 +106,10 @@ class SharepointRestAPI(CloudClientContract):
             raise ConnectionError(error)
 
     async def __aexit__(
-        self, _exc_type: type[BaseException], _exc_val: BaseException, _exc_tb: Any
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc_val: BaseException | None,
+        _exc_tb: TracebackType | None,
     ) -> None:
         await self.session.close()
 

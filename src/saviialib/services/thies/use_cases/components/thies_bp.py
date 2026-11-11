@@ -2,6 +2,7 @@ import configparser
 import os
 import struct
 from datetime import datetime, timedelta
+from typing import ClassVar
 
 import numpy as np
 import pandas as pd
@@ -52,24 +53,24 @@ def read_descfile(path) -> dict:
         key is index [i]
         value is dict with parameters from .ini
     """
-    if type(path) == dict:  # noqa: E721
+    if type(path) == dict:
         return path
     config = configparser.ConfigParser()
     config.read(path)
     data_dict = {}
     for section in config.sections():
         section_dict = dict(config.items(section))
-        for v in section_dict:
+        for v, value in section_dict.items():
             if v == "name":
                 continue
-            section_dict[v] = int(section_dict[v])
+            section_dict[v] = int(value)
         data_dict[int(section)] = section_dict
     return data_dict
 
 
 class THIESDayData:
     # Bytes per parameter
-    BPP = {"av": 5, "ex": 9}
+    BPP: ClassVar[dict[str, int]] = {"av": 5, "ex": 9}
     # Timestamp Offset
     OFFSET = 4
 
@@ -151,7 +152,7 @@ class THIESDayData:
         """
         byterows = [
             self._binfile[i * self._bpr + THIESDayData.OFFSET : (i + 1) * self._bpr]
-            for i in range(0, self.nrows)
+            for i in range(self.nrows)
         ]
         data_arr = np.zeros((self.nrows, self.nparameters))
         status_arr = np.zeros((self.nrows, self.nparameters))

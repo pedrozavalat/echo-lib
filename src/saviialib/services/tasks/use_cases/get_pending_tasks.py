@@ -1,21 +1,24 @@
+import re
+
+import pandas as pd
+
+from saviialib.libs.email_client import SendEmailArgs
+from saviialib.libs.log_client import DebugArgs, LogClient, LogClientArgs, LogStatus
+from saviialib.libs.zero_dependency.utils.datetime_utils import (
+    datetime_to_str,
+    datetime_to_timestamp,
+    str_to_datetime,
+    today,
+)
+from saviialib.services.tasks.presenters.task_notification_presenter import (
+    TaskNotificationPresenter,
+)
+
+from .get_tasks import GetTasksUseCase, GetTasksUseCaseInput
 from .types.get_pending_tasks_types import (
     GetPendingTasksUseCaseInput,
     GetPendingTasksUseCaseOutput,
 )
-from saviialib.libs.log_client import LogClient, LogClientArgs, LogStatus, DebugArgs
-from .get_tasks import GetTasksUseCase, GetTasksUseCaseInput
-from saviialib.services.tasks.presenters.task_notification_presenter import (
-    TaskNotificationPresenter,
-)
-import re
-from saviialib.libs.zero_dependency.utils.datetime_utils import (
-    today,
-    datetime_to_timestamp,
-    str_to_datetime,
-    datetime_to_str,
-)
-import pandas as pd
-from saviialib.libs.email_client import SendEmailArgs
 
 
 class GetPendingTasksUseCase:
@@ -69,59 +72,53 @@ class GetPendingTasksUseCase:
     def _preprocess_tasks(self, tasks: list) -> list:
         """Extract the needed attributes, and in the same time create the values to sort
         the array"""
-        return list(
-            map(
-                lambda t: {
-                    "title": t["title"],
-                    "creation": t.get("creation", ""),
-                    "deadline": t["deadline"],
-                    "execution": t.get("execution", ""),
-                    "description": t.get("description", ""),
-                    "priority": int(t["priority"]),
-                    "assignee": t["assignee"],
-                    "assignee_email": t.get("assignee_email", ""),
-                    "deadline_categ": self._set_date_state(
-                        datetime_to_timestamp(
-                            str_to_datetime(t["deadline"], self.date_format),
-                            self.date_format,
-                        )
-                    ),
-                    "periodicity_categ": self._get_periodicity_params(
-                        t.get("periodicity", "")
-                    )[0],
-                    "periodicity_freq": self._get_periodicity_params(
-                        t.get("periodicity", "")
-                    )[1],
-                },
-                tasks,
-            )
-        )
+        return [
+            {
+                "title": t["title"],
+                "creation": t.get("creation", ""),
+                "deadline": t["deadline"],
+                "execution": t.get("execution", ""),
+                "description": t.get("description", ""),
+                "priority": int(t["priority"]),
+                "assignee": t["assignee"],
+                "assignee_email": t.get("assignee_email", ""),
+                "deadline_categ": self._set_date_state(
+                    datetime_to_timestamp(
+                        str_to_datetime(t["deadline"], self.date_format),
+                        self.date_format,
+                    )
+                ),
+                "periodicity_categ": self._get_periodicity_params(
+                    t.get("periodicity", "")
+                )[0],
+                "periodicity_freq": self._get_periodicity_params(
+                    t.get("periodicity", "")
+                )[1],
+            }
+            for t in tasks
+        ]
 
     def _split_task_arrays(self, tasks: list) -> tuple[list, list]:
         """Split the sortered tasks in two arrays: overdue and on-time tasks"""
         return (
-            list(
-                map(
-                    lambda t: {
-                        "title": t["title"],
-                        "deadline": t["deadline"],
-                        "priority": t["priority"],
-                        "assignee": t["assignee"],
-                    },
-                    filter(lambda t: t["deadline_categ"] == 1, tasks),
-                )
-            ),
-            list(
-                map(
-                    lambda t: {
-                        "title": t["title"],
-                        "deadline": t["deadline"],
-                        "priority": t["priority"],
-                        "assignee": t["assignee"],
-                    },
-                    filter(lambda t: t["deadline_categ"] == 0, tasks),
-                )
-            ),
+            [
+                {
+                    "title": t["title"],
+                    "deadline": t["deadline"],
+                    "priority": t["priority"],
+                    "assignee": t["assignee"],
+                }
+                for t in filter(lambda t: t["deadline_categ"] == 1, tasks)
+            ],
+            [
+                {
+                    "title": t["title"],
+                    "deadline": t["deadline"],
+                    "priority": t["priority"],
+                    "assignee": t["assignee"],
+                }
+                for t in filter(lambda t: t["deadline_categ"] == 0, tasks)
+            ],
         )
 
     def _compare_by_attr(self, t: dict) -> tuple:
@@ -155,8 +152,8 @@ class GetPendingTasksUseCase:
                 user_tasks[assignee_email] = []
             user_tasks[assignee_email].append(task)
         # Then we send an email to each user with their assigned tasks
-        for assignee_email, tasks in user_tasks.items():
-            email_content = self.presenter.tasks_to_email(tasks)
+        for assignee_email, assigned_tasks in user_tasks.items():
+            email_content = self.presenter.tasks_to_email(assigned_tasks)
             await self.email_client.send_email(
                 SendEmailArgs(
                     recipient=assignee_email,

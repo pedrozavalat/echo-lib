@@ -1,15 +1,16 @@
+from typing import ClassVar
+
+from .clients.asyncssh_sftp_client import AsyncsshSFTPClient
 from .sftp_client_contract import SFTPClientContract
 from .types.sftp_client_types import (
-    SFTPClientInitArgs,
-    ListfilesArgs,
     DownloadfilesArgs,
+    ListfilesArgs,
+    SFTPClientInitArgs,
 )
-from .clients.asyncssh_sftp_client import AsyncsshSFTPClient
-from typing import List
 
 
 class SFTPClient(SFTPClientContract):
-    CLIENTS = {"asyncssh_sftp"}
+    CLIENTS: ClassVar[set[str]] = {"asyncssh_sftp"}
 
     def __init__(self, args: SFTPClientInitArgs) -> None:
         if args.client_name not in SFTPClient.CLIENTS:
@@ -19,7 +20,7 @@ class SFTPClient(SFTPClientContract):
             self.client_obj = AsyncsshSFTPClient(args)
         self.client_name = args.client_name
 
-    async def list_files(self, args: ListfilesArgs) -> List[str]:
+    async def list_files(self, args: ListfilesArgs) -> list[str]:
         return await self.client_obj.list_files(args)
 
     async def download_files(self, args: DownloadfilesArgs) -> None:

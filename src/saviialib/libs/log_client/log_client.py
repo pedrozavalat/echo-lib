@@ -2,10 +2,10 @@
 from saviialib.libs.log_client.log_client_contract import LogClientContract
 from saviialib.libs.log_client.logging_client.logging_client import LoggingClient
 from saviialib.libs.log_client.types.log_client_types import (
+    DebugArgs,
     ErrorArgs,
     InfoArgs,
     LogClientArgs,
-    DebugArgs,
     WarningArgs,
 )
 

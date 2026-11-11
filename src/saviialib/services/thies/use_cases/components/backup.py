@@ -1,5 +1,5 @@
 from logging import Logger
-from typing import Any, Set, cast
+from typing import Any, cast
 
 from saviialib.general_types.error_types.api.saviia_api_error_types import (
     ThiesConnectionError,
@@ -12,9 +12,9 @@ from saviialib.libs.log_client import LogStatus
 from saviialib.libs.zero_dependency.utils.datetime_utils import datetime_to_str, today
 
 from .base import ThiesComponent
+from .create_thies_statistics_file import create_thies_daily_statistics_file
 from .inventory import ThiesInventoryComponent
 from .paths import THIES_CATEGORIES, ThiesCategory, ThiesPathComponent
-from .create_thies_statistics_file import create_thies_daily_statistics_file
 
 
 class ThiesBackupComponent(ThiesComponent):
@@ -37,7 +37,7 @@ class ThiesBackupComponent(ThiesComponent):
         self.directory_client = directory_client
         self.logger = logger
 
-    async def backup_files(self, thies_files: Set[tuple[str, int]]) -> Set[str]:
+    async def backup_files(self, thies_files: set[tuple[str, int]]) -> set[str]:
         method_name = "backup_files"
         self._debug(
             method_name,
@@ -46,7 +46,7 @@ class ThiesBackupComponent(ThiesComponent):
         )
         local_files = await self.inventory.get_local_files()
         local_sizes = {name: int(size) for name, size in local_files}
-        saved_files: Set[str] = set()
+        saved_files: set[str] = set()
         try:
             for file_key, ftp_size in thies_files:
                 category_value, filename = file_key.split("_", 1)

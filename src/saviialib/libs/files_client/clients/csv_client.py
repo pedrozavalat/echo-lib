@@ -36,7 +36,10 @@ class CsvClient(FilesClientContract):
                 args.destination_path, args.file_name
             )
 
-        with open(dest_path, "w", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=header, delimiter=delimiter)  # type: ignore
-            await to_thread(writer.writeheader)
-            await to_thread(writer.writerows, file_content)  # type: ignore
+        def write_file():
+            with open(dest_path, "w", newline="") as file:
+                writer = csv.DictWriter(file, fieldnames=header, delimiter=delimiter)  # type: ignore
+                writer.writeheader()
+                writer.writerows(file_content)  # type: ignore
+
+        await to_thread(write_file)

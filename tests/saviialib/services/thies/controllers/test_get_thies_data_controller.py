@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 if "pandas" not in sys.modules:
     pandas_stub = types.ModuleType("pandas")
-    setattr(pandas_stub, "DataFrame", type("DataFrame", (), {}))
-    setattr(pandas_stub, "Series", type("Series", (), {}))
-    setattr(pandas_stub, "read_csv", lambda *args, **kwargs: None)
+    pandas_stub.DataFrame = type("DataFrame", (), {})
+    pandas_stub.Series = type("Series", (), {})
+    pandas_stub.read_csv = lambda *args, **kwargs: None
     sys.modules["pandas"] = pandas_stub
 if "numpy" not in sys.modules:
     sys.modules["numpy"] = types.ModuleType("numpy")

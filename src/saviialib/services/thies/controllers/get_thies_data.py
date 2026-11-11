@@ -1,36 +1,35 @@
 from http import HTTPStatus
 
-from saviialib.general_types.error_types.api.saviia_api_error_types import (
-    ThiesFetchingError,
-    ValidationError,
+from saviialib.general_types.api.saviia_api_types import (
+    DatabricksConfig,
+    FtpClientConfig,
 )
 from saviialib.general_types.error_types.api.saviia_api_error_types import (
     BackupSourcePathError,
+    ThiesFetchingError,
+    ValidationError,
 )
 from saviialib.general_types.error_types.common.common_types import (
-    FtpClientError,
     CloudClientError,
+    FtpClientError,
 )
-from saviialib.services.thies.controllers.types.get_thies_data_types import (
-    GetThiesDataControllerInput,
-    GetThiesDataControllerOutput,
-)
-from .types.get_thies_data_schema import GET_THIES_DATA_SCHEMA
 from saviialib.libs.cloud_client import (
     CloudClient,
     CloudClientInitArgs,
+)
+from saviialib.libs.directory_client import DirectoryClient, DirectoryClientArgs
+from saviialib.libs.files_client import (
+    FilesClient,
+    FilesClientInitArgs,
 )
 from saviialib.libs.ftp_client import (
     FTPClient,
     FtpClientInitArgs,
 )
-from saviialib.libs.files_client import (
-    FilesClient,
-    FilesClientInitArgs,
-)
-from saviialib.general_types.api.saviia_api_types import (
-    FtpClientConfig,
-    DatabricksConfig,
+from saviialib.libs.schema_validator_client import SchemaValidatorClient
+from saviialib.services.thies.controllers.types.get_thies_data_types import (
+    GetThiesDataControllerInput,
+    GetThiesDataControllerOutput,
 )
 from saviialib.services.thies.use_cases.get_thies_data import (
     GetThiesDataUseCase,
@@ -38,8 +37,8 @@ from saviialib.services.thies.use_cases.get_thies_data import (
 from saviialib.services.thies.use_cases.types.get_thies_data_types import (
     GetThiesDataUseCaseInput,
 )
-from saviialib.libs.directory_client import DirectoryClient, DirectoryClientArgs
-from saviialib.libs.schema_validator_client import SchemaValidatorClient
+
+from .types.get_thies_data_schema import GET_THIES_DATA_SCHEMA
 
 
 class GetThiesDataController:

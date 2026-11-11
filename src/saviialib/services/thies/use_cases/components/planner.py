@@ -1,6 +1,7 @@
+from collections.abc import Mapping
 from dataclasses import dataclass
 from logging import Logger
-from typing import Dict, Mapping, Set, cast
+from typing import cast
 
 from saviialib.libs.log_client import LogStatus
 
@@ -31,15 +32,13 @@ class ThiesSyncPlanner(ThiesComponent):
     @staticmethod
     def sizes_match(source_size: int, destination_size: int) -> bool:
         return (
-            source_size == 0
-            or destination_size == 0
-            or source_size == destination_size
+            source_size == 0 or destination_size == 0 or source_size == destination_size
         )
 
     def get_files_to_sync(
         self,
-        local_files: Set[tuple[str, int]],
-        cloud_files: Set[tuple[str, int]],
+        local_files: set[tuple[str, int]],
+        cloud_files: set[tuple[str, int]],
     ) -> set[str]:
         method_name = "get_files_to_sync"
         self._debug(
@@ -64,8 +63,8 @@ class ThiesSyncPlanner(ThiesComponent):
 
     def create_plan(
         self,
-        thies_files: Set[tuple[str, int]],
-        cloud_files: Set[tuple[str, int]],
+        thies_files: set[tuple[str, int]],
+        cloud_files: set[tuple[str, int]],
         backup_files: Mapping[str, object],
         sync_error: bool = False,
     ) -> ThiesSyncPlan:
@@ -73,8 +72,8 @@ class ThiesSyncPlanner(ThiesComponent):
         self._debug(method_name, LogStatus.STARTED, "Comparing THIES inventories")
         thies_files_dict = {name: int(size) for name, size in thies_files}
         cloud_files_dict = {name: int(size) for name, size in cloud_files}
-        backup_filenames = cast(Set[str], backup_files["filenames"])
-        backup_file_sizes = cast(Dict[str, int], backup_files.get("file_sizes", {}))
+        backup_filenames = cast(set[str], backup_files["filenames"])
+        backup_file_sizes = cast(dict[str, int], backup_files.get("file_sizes", {}))
         count_ext_files = cast(int, backup_files.get("count_ext_files", 0))
         count_avg_files = cast(int, backup_files.get("count_avg_files", 0))
 
