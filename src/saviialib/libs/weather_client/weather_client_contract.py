@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from .types.weather_client_types import ForecastArgs
 
 
@@ -35,7 +36,6 @@ class WeatherClientContract(ABC):
         Returns:
             dict: JSON response from the weather API containing hourly (and daily if aggregates requested) data
         """
-        pass
 
     @abstractmethod
     async def metrics(self) -> dict:
@@ -48,4 +48,3 @@ class WeatherClientContract(ABC):
             dict: A dictionary mapping metric names to their descriptions. If the aggregation attribute
             is empty, it means the metric does not support aggregations (e.g. min, max, etc).
         """
-        pass

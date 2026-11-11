@@ -8,7 +8,7 @@ from saviialib.libs.email_client.types.email_client_types import (
     EmailClientInitArgs,
     SendEmailArgs,
 )
-from saviialib.libs.log_client import LogClient, LogClientArgs, DebugArgs, LogStatus
+from saviialib.libs.log_client import DebugArgs, LogClient, LogClientArgs, LogStatus
 
 
 class SmtpLibClient(EmailClientContract):

@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Dict
 from logging import Logger
 
 
 @dataclass
 class GetMiniseedFilesUseCaseInput:
-    raspberry_shakes: Dict[str, str]
+    raspberry_shakes: dict[str, str]
     username: str
     password: str
     ssh_key_path: str
@@ -15,4 +14,4 @@ class GetMiniseedFilesUseCaseInput:
 
 @dataclass
 class GetMiniseedFilesUseCaseOutput:
-    download_status: Dict[str, str] = field(default_factory=dict)
+    download_status: dict[str, str] = field(default_factory=dict)

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from saviialib.libs.notification_client import NotificationClient
-from saviialib.libs.email_client import EmailClient
+
 from saviialib.libs.directory_client import DirectoryClient
-from typing import Dict, List
+from saviialib.libs.email_client import EmailClient
+from saviialib.libs.notification_client import NotificationClient
 
 
 @dataclass
@@ -17,5 +17,5 @@ class GetPendingTasksUseCaseInput:
 
 @dataclass
 class GetPendingTasksUseCaseOutput:
-    overdue: List[Dict[str, str | bool | dict]]
-    ontime: List[Dict[str, str | bool | dict]]
+    overdue: list[dict[str, str | bool | dict]]
+    ontime: list[dict[str, str | bool | dict]]

@@ -1,22 +1,23 @@
-from typing import Dict, List
+from typing import ClassVar
 
 from saviialib.libs.notification_client.types.notification_client_types import (
     FindNotificationArgs,
     ReactArgs,
 )
+
+from .clients.discord_client import DiscordClient
 from .notification_client_contract import NotificationClientContract
 from .types.notification_client_types import (
-    NotifyArgs,
-    NotificationClientInitArgs,
-    UpdateNotificationArgs,
-    DeleteReactionArgs,
     DeleteNotificationArgs,
+    DeleteReactionArgs,
+    NotificationClientInitArgs,
+    NotifyArgs,
+    UpdateNotificationArgs,
 )
-from .clients.discord_client import DiscordClient
 
 
 class NotificationClient(NotificationClientContract):
-    CLIENTS = {"discord_client"}
+    CLIENTS: ClassVar[set[str]] = {"discord_client"}
 
     def __init__(self, args: NotificationClientInitArgs) -> None:
         if args.client_name not in NotificationClient.CLIENTS:
@@ -35,7 +36,7 @@ class NotificationClient(NotificationClientContract):
     async def notify(self, args: NotifyArgs) -> dict:
         return await self.client_obj.notify(args)
 
-    async def list_notifications(self) -> List[Dict[str, str]]:
+    async def list_notifications(self) -> list[dict[str, str]]:
         return await self.client_obj.list_notifications()
 
     async def react(self, args: ReactArgs) -> dict:

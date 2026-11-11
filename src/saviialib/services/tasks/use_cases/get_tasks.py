@@ -1,6 +1,7 @@
-from .types.get_tasks_types import GetTasksUseCaseInput, GetTasksUseCaseOutput
-from saviialib.libs.log_client import LogClient, LogClientArgs, LogStatus, DebugArgs
+from saviialib.libs.log_client import DebugArgs, LogClient, LogClientArgs, LogStatus
 from saviialib.services.tasks.presenters import TaskNotificationPresenter
+
+from .types.get_tasks_types import GetTasksUseCaseInput, GetTasksUseCaseOutput
 
 
 class GetTasksUseCase:

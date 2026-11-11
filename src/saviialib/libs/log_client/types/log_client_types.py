@@ -1,7 +1,7 @@
-from typing import Literal, Dict
-from enum import Enum
 from dataclasses import dataclass, field
+from enum import Enum
 from logging import Logger
+from typing import Literal
 
 
 class LogStatus(Enum):
@@ -26,7 +26,7 @@ class LogClientArgs:
 @dataclass
 class InfoArgs:
     status: Literal[LogStatus.STARTED, LogStatus.SUCCESSFUL, LogStatus.EARLY_RETURN]
-    metadata: Dict = field(default_factory=dict)
+    metadata: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -34,16 +34,16 @@ class DebugArgs:
     status: Literal[
         LogStatus.STARTED, LogStatus.SUCCESSFUL, LogStatus.EARLY_RETURN, LogStatus.ALERT
     ]
-    metadata: Dict = field(default_factory=dict)
+    metadata: dict = field(default_factory=dict)
 
 
 @dataclass
 class ErrorArgs:
     status: Literal[LogStatus.ERROR]
-    metadata: Dict = field(default_factory=dict)
+    metadata: dict = field(default_factory=dict)
 
 
 @dataclass
 class WarningArgs:
     status: Literal[LogStatus.FAILED, LogStatus.ALERT]
-    metadata: Dict = field(default_factory=dict)
+    metadata: dict = field(default_factory=dict)

@@ -1,18 +1,19 @@
 from http import HTTPStatus
+
+from saviialib.db import DbClient, DbClientInitArgs
 from saviialib.libs.log_client import LogClient, LogClientArgs
+from saviialib.libs.schema_validator_client import SchemaValidatorClient
+from saviialib.libs.weather_client import WeatherClient, WeatherClientInitArgs
 from saviialib.services.thies.controllers.types.detect_failures_types import (
     DetectFailuresControllerInput,
     DetectFailuresControllerOutput,
 )
-from .types.detect_failures_schema import DETECT_FAILURES_SCHEMA
 from saviialib.services.thies.use_cases.detect_failures import DetectFailuresUseCase
 from saviialib.services.thies.use_cases.types.detect_failures_types import (
     DetectFailuresUseCaseInput,
 )
 
-from saviialib.libs.schema_validator_client import SchemaValidatorClient
-from saviialib.db import DbClient, DbClientInitArgs
-from saviialib.libs.weather_client import WeatherClient, WeatherClientInitArgs
+from .types.detect_failures_schema import DETECT_FAILURES_SCHEMA
 
 
 class DetectFailuresController:

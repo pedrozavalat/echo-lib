@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+
+from saviialib.libs.email_client import EmailClient
 from saviialib.libs.notification_client import NotificationClient
 from saviialib.services.tasks.entities.task import SaviiaTask
-from saviialib.libs.email_client import EmailClient
 
 
 @dataclass

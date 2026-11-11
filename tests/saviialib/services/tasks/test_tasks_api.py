@@ -6,9 +6,9 @@ import pytest
 
 if "pandas" not in sys.modules:
     pandas_stub = types.ModuleType("pandas")
-    setattr(pandas_stub, "DataFrame", type("DataFrame", (), {}))
-    setattr(pandas_stub, "Series", type("Series", (), {}))
-    setattr(pandas_stub, "read_csv", lambda *args, **kwargs: None)
+    pandas_stub.DataFrame = type("DataFrame", (), {})
+    pandas_stub.Series = type("Series", (), {})
+    pandas_stub.read_csv = lambda *args, **kwargs: None
     sys.modules["pandas"] = pandas_stub
 if "numpy" not in sys.modules:
     sys.modules["numpy"] = types.ModuleType("numpy")
@@ -79,3 +79,34 @@ async def test_should_delegate_tasks_api_calls(
 
     assert result == fake_output.__dict__
     fake_controller.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("method", "controller_name", "kwargs", "field", "empty"),
+    [
+        ("create_task", "CreateTaskController", {"task": {}}, "images", []),
+        ("get_tasks", "GetTasksController", {}, "params", {}),
+    ],
+)
+async def test_optional_containers_are_fresh_for_each_call(
+    monkeypatch, tasks_config, method, controller_name, kwargs, field, empty
+):
+    captured = []
+
+    def make_controller(input):
+        value = getattr(input, field)
+        captured.append(value.copy())
+        if isinstance(value, list):
+            value.append("changed")
+        else:
+            value["changed"] = True
+        return MagicMock(execute=AsyncMock(return_value=MagicMock()))
+
+    monkeypatch.setattr(
+        f"saviialib.services.tasks.api.{controller_name}", make_controller
+    )
+    api = SaviiaTasksAPI(tasks_config)
+    await getattr(api, method)(**kwargs)
+    await getattr(api, method)(**kwargs)
+    assert captured == [empty, empty]

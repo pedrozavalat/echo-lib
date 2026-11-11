@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 from saviialib.libs.notification_client import NotificationClient
 
 

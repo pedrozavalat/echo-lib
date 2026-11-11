@@ -1,8 +1,9 @@
+import asyncio
+import os
+
 from saviialib.libs.directory_client.directory_client_contract import (
     DirectoryClientContract,
 )
-import os
-import asyncio
 
 
 class OsClient(DirectoryClientContract):

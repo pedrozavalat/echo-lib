@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "saviialib"
-version = "1.19.1"
+version = "1.20.0"
 description = "A client library for IoT projects in the RCER initiative"
 authors = ["pedropablozavalat"]
 license = "MIT"
@@ -26,6 +26,8 @@ jsonschema="4.25.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "8.4.2"
 pytest-asyncio = "0.26.0"
+pytest-cov = "7.1.0"
+ruff = "0.17.4"
 black = "*"
 coverage = "*"
 flake8 = "*"

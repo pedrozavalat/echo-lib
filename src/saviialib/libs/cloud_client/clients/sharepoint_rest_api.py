@@ -1,27 +1,30 @@
-from typing import Any
 import json
+import ssl
+from types import TracebackType
+from typing import Self
+
+import certifi
 from aiohttp import ClientError, ClientSession, TCPConnector
 from dotenv import load_dotenv
-import ssl
-import certifi
 
-from saviialib.libs.sharepoint_client.sharepoint_client_contract import (
-    SharepointClientContract,
+from saviialib.libs.cloud_client.cloud_client_contract import (
+    CloudClientContract,
 )
-from saviialib.libs.sharepoint_client.types.sharepoint_client_types import (
-    SpListFilesArgs,
-    SpListFoldersArgs,
-    SpUploadFileArgs,
-    SpCreateFolderArgs,
-    SharepointClientInitArgs,
+from saviialib.libs.cloud_client.types.cloud_client_types import (
+    CloudClientCreateFolderArgs,
+    CloudClientInitArgs,
+    CloudClientListFilesArgs,
+    CloudClientListFoldersArgs,
+    CloudClientResolveUrlArgs,
+    CloudClientUploadFileArgs,
 )
 
 load_dotenv()
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 
-class SharepointRestAPI(SharepointClientContract):
-    def __init__(self, args: SharepointClientInitArgs):
+class SharepointRestAPI(CloudClientContract):
+    def __init__(self, args: CloudClientInitArgs):
         self.session: ClientSession | None = None
         self.base_headers = {}
         self.credentials = {}
@@ -31,6 +34,22 @@ class SharepointRestAPI(SharepointClientContract):
         self.client_secret = args.config.sharepoint_client_secret
         self.client_id = args.config.sharepoint_client_id
         self.site_name = args.config.sharepoint_site_name
+
+        required = {
+            "sharepoint_client_id": self.client_id,
+            "sharepoint_client_secret": self.client_secret,
+            "sharepoint_tenant_id": self.tenant_id,
+            "sharepoint_tenant_name": self.tenant_name,
+            "sharepoint_site_name": self.site_name,
+        }
+        missing = [key for key, value in required.items() if not value]
+        if missing:
+            raise ValueError(f"Missing SharePoint config fields: {', '.join(missing)}")
+
+    @property
+    def base_url(self):
+        site_url = f"https://{self.tenant_name}.sharepoint.com"
+        return f"{site_url}/sites/{self.site_name}/_api/"
 
     async def _load_form_digest_value(self) -> str:
         try:
@@ -67,7 +86,7 @@ class SharepointRestAPI(SharepointClientContract):
                 "access_token": response_json["access_token"],
             }
 
-    async def __aenter__(self) -> "SharepointRestAPI":
+    async def __aenter__(self) -> Self:
         try:
             self.credentials = await self._load_credentials()
             site_url = f"https://{self.tenant_name}.sharepoint.com"
@@ -87,11 +106,14 @@ class SharepointRestAPI(SharepointClientContract):
             raise ConnectionError(error)
 
     async def __aexit__(
-        self, _exc_type: type[BaseException], _exc_val: BaseException, _exc_tb: Any
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc_val: BaseException | None,
+        _exc_tb: TracebackType | None,
     ) -> None:
         await self.session.close()
 
-    async def list_files(self, args: SpListFilesArgs) -> list:
+    async def list_files(self, args: CloudClientListFilesArgs) -> list:
         try:
             folder_relative_url = (
                 f"GetFolderByServerRelativeUrl('{args.folder_relative_url}')"
@@ -104,7 +126,7 @@ class SharepointRestAPI(SharepointClientContract):
         except ClientError as error:
             raise ConnectionError(error) from error
 
-    async def list_folders(self, args: SpListFoldersArgs) -> list:
+    async def list_folders(self, args: CloudClientListFoldersArgs) -> list:
         try:
             folder_relative_url = (
                 f"GetFolderByServerRelativeUrl('{args.folder_relative_url}')"
@@ -117,7 +139,7 @@ class SharepointRestAPI(SharepointClientContract):
         except ClientError as error:
             raise ConnectionError(error) from error
 
-    async def upload_file(self, args: SpUploadFileArgs) -> dict:
+    async def upload_file(self, args: CloudClientUploadFileArgs) -> dict:
         try:
             # Load form digest value
             form_digest_value = await self._load_form_digest_value()
@@ -140,7 +162,7 @@ class SharepointRestAPI(SharepointClientContract):
         except ClientError as error:
             raise ConnectionError(error) from error
 
-    async def create_folder(self, args: SpCreateFolderArgs):
+    async def create_folder(self, args: CloudClientCreateFolderArgs):
         try:
             # Load form digest value
             form_digest_value = await self._load_form_digest_value()
@@ -158,3 +180,9 @@ class SharepointRestAPI(SharepointClientContract):
             return response_json
         except ClientError as error:
             raise ConnectionError(error) from error
+
+    def resolve_url(self, args: CloudClientResolveUrlArgs) -> str:
+        folder_path = args.folder_path.rstrip("/")
+        if folder_path.startswith(self.base_url):
+            return folder_path
+        return f"{self.base_url}/{folder_path.lstrip('/')}"

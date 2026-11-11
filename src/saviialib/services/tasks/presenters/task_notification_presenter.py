@@ -23,7 +23,7 @@ class TaskNotificationPresenter:
 
             if "__Estado__" in line:
                 status = line.split(":", 1)[1].strip()
-                result["completed"] = False if "Pendiente" in status else True
+                result["completed"] = "Pendiente" not in status
                 current_field = None
             elif "__Fecha limite__" in line:
                 result["deadline"] = line.split(":", 1)[1].strip()
@@ -89,9 +89,7 @@ class TaskNotificationPresenter:
 
     @classmethod
     def _format_complete_status(cls, reactions: list[dict]) -> bool:
-        if any(reaction["emoji"]["name"] == "✅" for reaction in reactions):
-            return True
-        return False
+        return any(reaction["emoji"]["name"] == "✅" for reaction in reactions)
 
     @classmethod
     def task_to_email(cls, task: dict[str, str]) -> str:
@@ -171,50 +169,45 @@ class TaskNotificationPresenter:
 
     @classmethod
     def to_task_notifications(
-        cls, tasks: list, params: dict = {}
+        cls, tasks: list, params: dict | None = None
     ) -> list[dict[str, str | bool | dict]]:
-        tasks = list(
-            map(
-                lambda task: {
-                    **cls.to_dict(task["content"]),
-                    "task_id": task["id"],
-                    "embeds": list(map(lambda e: e["image"]["url"], task["embeds"])),
-                    "completed": cls._format_complete_status(task["reactions"]),
-                },
-                filter(
-                    lambda task: task.get("reactions", {}) != {}
+        if params is None:
+            params = {}
+        tasks = [
+            {
+                **cls.to_dict(task["content"]),
+                "task_id": task["id"],
+                "embeds": [e["image"]["url"] for e in task["embeds"]],
+                "completed": cls._format_complete_status(task["reactions"]),
+            }
+            for task in filter(
+                lambda task: (
+                    task.get("reactions", {}) != {}
                     and (
                         {"📌", "✅"}
                         & {r["emoji"]["name"] for r in task.get("reactions")}
                         != {}
-                    ),
-                    tasks,
+                    )
                 ),
+                tasks,
             )
-        )
+        ]
 
-        if any(param == "completed" for param in params.keys()):
+        if any(param == "completed" for param in params):
             tasks = list(filter(lambda t: t["completed"] == params["completed"], tasks))
 
-        if any(param == "fields" for param in params.keys()):
+        if any(param == "fields" for param in params):
             allowed_fields = params["fields"]
-            tasks = list(
-                map(
-                    lambda t: {k: v for k, v in t.items() if k in allowed_fields},
-                    tasks,
-                )
-            )
+            tasks = [{k: v for k, v in t.items() if k in allowed_fields} for t in tasks]
 
-        if any(param == "after" or param == "before" for param in params.keys()):
-            tasks = list(
-                map(
-                    lambda t: is_within_date_range(
-                        t["task"]["due_date"], params.get("after"), params.get("before")
-                    ),
-                    tasks,
+        if any(param == "after" or param == "before" for param in params):
+            tasks = [
+                is_within_date_range(
+                    t["task"]["due_date"], params.get("after"), params.get("before")
                 )
-            )
-        if any(param == "sort" for param in params.keys()):
+                for t in tasks
+            ]
+        if any(param == "sort" for param in params):
             reverse = params["sort"] == "desc"
             tasks.sort(
                 key=lambda t: str_to_timestamp(

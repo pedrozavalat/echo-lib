@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, ClassVar
 
 from .db_client_contract import DbClientContract
 from .types.db_client_types import (
@@ -10,7 +10,7 @@ from .types.db_client_types import (
 
 
 class DbClient(DbClientContract):
-    CLIENTS = {"pyodbc_client"}
+    CLIENTS: ClassVar[set[str]] = {"pyodbc_client"}
 
     def __init__(self, args: DbClientInitArgs) -> None:
         if args.client_name not in DbClient.CLIENTS:
@@ -32,7 +32,7 @@ class DbClient(DbClientContract):
         # TODO: Not implemented yet
         return
 
-    async def fetch_all(self, args: FetchAllArgs) -> List[Any]:
+    async def fetch_all(self, args: FetchAllArgs) -> list[Any]:
         # TODO: Not implemented yet
         return [()]
 

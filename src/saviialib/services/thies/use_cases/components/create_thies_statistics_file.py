@@ -1,11 +1,14 @@
-from .thies_bp import THIESDayData
-import pandas as pd
-from logging import Logger
 from asyncio import to_thread
+from logging import Logger
+
+import pandas as pd
+
+import saviialib.services.thies.constants.post_thies_data_constants as c
 from saviialib.libs.directory_client import DirectoryClient
-from saviialib.libs.zero_dependency.utils.datetime_utils import datetime_to_str, today
 from saviialib.libs.files_client import FilesClient, FilesClientInitArgs, WriteArgs
-import saviialib.services.thies.constants.update_thies_data_constants as c
+from saviialib.libs.zero_dependency.utils.datetime_utils import datetime_to_str, today
+
+from .thies_bp import THIESDayData
 
 
 async def create_thies_daily_statistics_file(
@@ -62,9 +65,9 @@ async def create_thies_daily_statistics_file(
         for idx, row in hourly_agg.iterrows():
             statistic_id = f"sensor.saviia_epii_{col_id}"
             start = f"{row['Date']} {row['Hour']}:00"
-            mean = row[mean_col] if mean_col in row else 0
-            min_val = row[min_col] if min_col in row else mean
-            max_val = row[max_col] if max_col in row else mean
+            mean = row.get(mean_col, 0)
+            min_val = row.get(min_col, mean)
+            max_val = row.get(max_col, mean)
 
             # If no min/max for this attribute, set as Na or 0 as requested
             if not (pd.isna(mean) or pd.isna(min_val) or pd.isna(max_val)):

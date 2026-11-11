@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Dict
 
 from saviialib.general_types.api.saviia_thies_api_types import SaviiaThiesConfig
 
@@ -13,7 +12,7 @@ class PostThiesDataControllerInput:
     ftp_password: str
     need_to_sync: bool
     need_to_backup: bool
-    sharepoint_destination_path: str
+    cloud_provider_destination_path: str
     ftp_server_folders_path: list
     local_backup_source_path: str
 
@@ -22,4 +21,4 @@ class PostThiesDataControllerInput:
 class PostThiesDataControllerOutput:
     message: str
     status: int
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)
