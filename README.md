@@ -1,37 +1,40 @@
-# ECHO Library 
-> Edge Computing & Hardware Orchestration API library for Home Assistant. 
+# ECHO Library
 
+> Edge Computing & Hardware Orchestration API library for Home Assistant.
 
-
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/pedrozavalat/saviia-lib?style=for-the-badge)](https://github.com/pedrozavalat/saviia-lib/releases)
-
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/pedrozavalat/echo-lib?style=for-the-badge)](https://github.com/pedrozavalat/echo-lib/releases)
 
 ## Table of Contents
+
 - [Installation](#installation)
 - [ECHO API Client Usage](#echo-api-client-usage)
-     - [Initialize the ECHO API Client](#initialize-the-echo-api-client)
-        - [Access THIES Data Logger Services](#access-thies-data-logger-services)
-            - [THIES files extraction and synchronization](#thies-files-extraction-and-synchronization)
-            - [Get THIES status](#get-thies-status)
-            - [Post THIES precomputed actions](#post-thies-precomputed-actions)
-            - [Detect Failures](#detect-failures)
-        
-        - [Access Backup Services](#access-backup-services)
-            - [Create Backup](#create-backup)
-            - [Export Files](#export-files)
-        - [Access Netcamera Services](#access-netcamera-services)
-            - [Get Camera Rates](#get-camera-rates)
-        - [Access Task System Services](#access-task-system-services)
-            - [Create Task](#create-task)
-            - [Update Task](#update-task)
-            - [Delete Task](#delete-task)
-            - [Get Tasks](#get-tasks)
+  - [Initialize the ECHO API Client](#initialize-the-echo-api-client)
+  - [Databricks host, token, and destination](#databricks-host-token-and-destination)
+  - [Access THIES Data Logger Services](#access-thies-data-logger-services)
+    - [THIES files extraction and synchronization](#thies-files-extraction-and-synchronization)
+    - [Get THIES status](#get-thies-status)
+    - [Post THIES precomputed actions](#post-thies-precomputed-actions)
+    - [Detect Failures](#detect-failures)
+  - [Access Backup Services](#access-backup-services)
+    - [Export Files](#export-files)
+  - [Migrating from SharePoint](#migrating-from-sharepoint)
+  - [Access Netcamera Services](#access-netcamera-services)
+    - [Get Camera Rates](#get-camera-rates)
+  - [Access Task System Services](#access-task-system-services)
+    - [Create Task](#create-task)
+    - [Update Task](#update-task)
+    - [Delete Task](#delete-task)
+    - [Get Tasks](#get-tasks)
+    - [Get Pending Tasks](#get-pending-tasks)
 - [Related Projects](#related-projects)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Installation
-This library is designed for use with the SAVIIA Home Assistant Integration. It provides an API to retrieve files from a THIES Data Logger via an FTP server and upload them to a Microsoft SharePoint folder using the SharePoint REST API.
+
+ECHO Library supports the ECHO Home Assistant integration. It retrieves THIES Data Logger files over FTP, maintains a local backup, and synchronizes files to Databricks volumes through the Databricks Files API. Databricks is the cloud provider used by `SaviiaAPI` for THIES and backup services.
+
+Python 3.11 or later is required. The Python package and public class names retain their existing `saviialib` / `Saviia` names:
 
 ```bash
 pip install saviialib
@@ -40,55 +43,97 @@ pip install saviialib
 ## ECHO API Client Usage
 
 ### Initialize the ECHO API Client
-Import the necessary classes from the library.
-```python
-from saviialib import SaviiaAPI, SaviiaAPIConfig
-```
 
-To start using the library, you need to create an `SaviiaAPI` client instance with its configuration class `SaviiaAPIConfig`. Provide the required parameters such as FTP server details and SharePoint credentials:
+Configure the local backup root, logger, Databricks workspace host, and access token. The following example reads credentials from environment variables supplied by your application or deployment:
+
 ```python
+import logging
+import os
+from pathlib import Path
+
+from saviialib import SaviiaAPI, SaviiaAPIConfig
+
 config = SaviiaAPIConfig(
-    ftp_port=FTP_PORT,
-    ftp_host=FTP_HOST,
-    ftp_user=FTP_USER,
-    ftp_password=FTP_PASSWORD,
-    sharepoint_client_id=SHAREPOINT_CLIENT_ID,
-    sharepoint_client_secret=SHAREPOINT_CLIENT_SECRET,
-    sharepoint_tenant_id=SHAREPOINT_TENANT_ID,
-    sharepoint_tenant_name=SHAREPOINT_TENANT_NAME,
-    sharepoint_site_name=SHAREPOINT_SITE_NAME,
+    logger=logging.getLogger("echo"),
+    local_backup_path="saviia-local-backup",
+    databricks_host_url=os.environ["DATABRICKS_HOST"],
+    databricks_api_key=os.environ["DATABRICKS_TOKEN"],
 )
-```
-```python
+
+Path(config.local_backup_path).mkdir(parents=True, exist_ok=True)
 api_client = SaviiaAPI(config)
 ```
-**Notes:** 
-- Store sensitive data like `FTP_PASSWORD`, `FTP_USER`, and SharePoint credentials securely. Use environment variables or a secrets management tool to avoid hardcoding sensitive information in your codebase.
+
+Relative local paths are resolved from the process's working directory. Use an absolute path when your deployment requires a fixed location; see the destination-path rules below.
+
+The current `SaviiaAPIConfig` fields are:
+
+| Field | Default | Use |
+| --- | --- | --- |
+| `logger` | Required | Python `logging.Logger`. |
+| `local_backup_path` | Required | Local backup root. |
+| `databricks_host_url` | `""` | Databricks workspace URL; required for cloud operations. |
+| `databricks_api_key` | `""` | Databricks access token; required for cloud operations. |
+| `latitude` | `-91` | Station latitude; set a valid value for Netcamera. |
+| `longitude` | `-181` | Station longitude; set a valid value for Netcamera. |
+| `tasks_channel_id` | `""` | Discord channel for Tasks. |
+| `bot_token` | `""` | Discord bot token for Tasks. |
+| `email_address` | `""` | Sender address for task emails. |
+| `email_password` | `""` | SMTP credential for task emails. |
+| `sharepoint_client_id`, `sharepoint_client_secret`, `sharepoint_tenant_id`, `sharepoint_tenant_name`, `sharepoint_site_name` | `None` | Legacy fields; not forwarded to the Databricks services created by `SaviiaAPI`. |
+
+`api_client.get(name)` returns one of `thies`, `backup`, `netcamera`, or `tasks`. `api_client.list_available()` lists those service names. Configuration is copied into the services when `SaviiaAPI` is constructed; create a new client after changing configuration values.
+
+Service operations are asynchronous. The examples use `asyncio.run()` in standalone scripts; inside an existing event loop, await the service method directly. Responses use `message`, numeric HTTP-style `status`, and `metadata`; inspect the status before reading success data. Initialization or connection failures can also raise exceptions.
+
+### Databricks host, token, and destination
+
+| Setting | Where to pass it | Meaning |
+| --- | --- | --- |
+| Workspace host | `SaviiaAPIConfig.databricks_host_url` | Workspace base URL, for example `https://adb-1234567890123456.7.azuredatabricks.net`. Do not append `/api/2.0/fs` or a volume path. |
+| Access token | `SaviiaAPIConfig.databricks_api_key` | Raw token, without a `Bearer ` prefix. The client adds `Authorization: Bearer <token>`. |
+| Destination | `cloud_provider_destination_path` on THIES and backup calls | Volume path, for example `/Volumes/catalog/schema/volume/echo`. Pass a path, not a workspace URL. |
+| Local backup root | `SaviiaAPIConfig.local_backup_path` | Local directory used for downloaded THIES files and backup exports. |
+
+`DATABRICKS_HOST` and `DATABRICKS_TOKEN` are environment-variable names chosen for the example. The explicit `os.environ` assignments pass them to the library; setting environment variables alone does not populate `SaviiaAPIConfig`.
+
+The host and token fields default to empty strings in `SaviiaAPIConfig`, but both must be nonempty when the Databricks client is initialized. Otherwise, it raises `ValueError` with `Missing Databricks config fields`. The client sends the supplied token as-is; it does not obtain or refresh tokens. Keep the token in your deployment's secret configuration, not in source code.
+
+FTP connection details belong to individual THIES calls, not to `SaviiaAPIConfig`:
+
+```python
+ftp_options = {
+    "ftp_host": os.environ["THIES_FTP_HOST"],
+    "ftp_port": int(os.environ.get("THIES_FTP_PORT", "21")),
+    "ftp_user": os.environ["THIES_FTP_USER"],
+    "ftp_password": os.environ["THIES_FTP_PASSWORD"],
+}
+cloud_destination = "/Volumes/catalog/schema/volume/echo"
+```
 
 ### Access THIES Data Logger Services
-To interact with the THIES Data Logger services, you can access the `thies` attribute of the `SaviiaAPI` instance:
+
+The examples below reuse `api_client`, `config`, `ftp_options`, and `cloud_destination` from the setup above.
+
 ```python
 thies_service = api_client.get("thies")
 ```
-This instance provides methods to interact with the THIES Data Logger. Currently, it includes the main method for extracting files from the FTP server and uploading them to SharePoint.
 
 #### THIES files extraction and synchronization
-The library provides a method to extract and synchronize THIES Data Logger files with the Microsoft SharePoint client. This method downloads files from the FTP server and uploads them to the specified SharePoint folder:
-```python 
-import asyncio
 
+Use `get_thies_data` to inspect FTP, local, and cloud inventories, and `post_thies_data` to perform backup and synchronization. The former `update_thies_data` method has been removed.
 
-async def main():
-    # Before calling this method, you must have initialised the THIES service class ...
-    response = await thies_service.update_thies_data()
-    return response
+THIES stores files under these paths:
 
+| Location | AVG folder with the example configuration |
+| --- | --- |
+| FTP | `/ARCH_AV1` (`/ARCH_EX1` for EXT) |
+| Local backup | `saviia-local-backup/thies/AVG` |
+| Databricks | `/Volumes/catalog/schema/volume/echo/saviia-local-backup/thies/AVG` |
 
-asyncio.run(main())
-```
+THIES appends the **name of the local backup root**, followed by `thies/AVG` or `thies/EXT`, to `cloud_provider_destination_path`. Pass the base destination, without adding these suffixes yourself. An absolute local root such as `/config/saviia-local-backup` produces the same THIES cloud path shown above.
 
 ##### Get THIES status
-You can check whether THIES data needs syncing or backup by calling `get_thies_data` with FTP credentials and a SharePoint destination path:
 
 ```python
 import asyncio
@@ -96,311 +141,281 @@ import asyncio
 
 async def main():
     response = await thies_service.get_thies_data(
-        ftp_port=21,
-        ftp_host="ftp.example.com",
-        ftp_user="anonymous",
-        ftp_password="",
-        sharepoint_destination_path="Shared%20Documents/General/Test_Raspberry/THIES/AVG",
+        **ftp_options,
+        cloud_provider_destination_path=cloud_destination,
     )
-    return response
+    if response["status"] != 200:
+        raise RuntimeError(response["message"])
+    return response["metadata"]["data"]
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
+
+A successful response contains `need_to_backup` and `need_to_sync` inside `metadata["data"]`. Status inspection uses the FTP folders `/ARCH_AV1` and `/ARCH_EX1`.
 
 ##### Post THIES precomputed actions
-If you already computed whether to sync or backup externally, call `post_thies_data` to execute the actions:
+
+To request both a local backup and cloud synchronization:
 
 ```python
 import asyncio
 
 
 async def main():
-    response = await thies_service.post_thies_data(
-        ftp_port=21,
-        ftp_host="ftp.example.com",
-        ftp_user="anonymous",
-        ftp_password="",
+    return await thies_service.post_thies_data(
+        **ftp_options,
+        need_to_backup=True,
         need_to_sync=True,
-        need_to_backup=False,
-        sharepoint_destination_path="Shared%20Documents/General/Test_Raspberry/THIES/AVG",
+        cloud_provider_destination_path=cloud_destination,
         ftp_server_folders_path=["/ARCH_AV1", "/ARCH_EX1"],
-        local_backup_source_path="saviia-local-backup",
     )
-    return response
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
 
-The `need_to_backup` allows you to trigger a backup of the THIES files in a local folder, while `need_to_sync` will trigger the synchronization of THIES files between the Local Backup and SharePoint. You can set either or both to `True` depending on your needs.
+You can also supply flags computed by your application or obtained from the status response. `need_to_backup` requests downloading pending FTP files into the local backup; `need_to_sync` requests uploading pending local files to Databricks. Request both to back up and synchronize in the same operation.
+
+`post_thies_data` reads the local root from `config.local_backup_path`; it no longer accepts `local_backup_source_path`. Supply the AVG FTP folder first, followed by EXT.
 
 ##### Detect Failures
-Use `detect_failures` to scan a local backup folder for missing or corrupt THIES files over the last N days. 
+
+Use `detect_failures` to scan a local THIES backup for missing or corrupt files over the last N days:
 
 ```python
 import asyncio
 
 
 async def main():
-    response = await thies_service.detect_failures(
-        local_backup_source_path="saviia-local-backup", n_days=7
+    return await thies_service.detect_failures(
+        local_backup_source_path=config.local_backup_path,
+        n_days=7,
     )
-    return response
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
 
 ### Access Backup Services
-To interact with the Backup services, you can access the `backup` attribute of the `SaviiaAPI` instance:
+
 ```python
 backup_service = api_client.get("backup")
 ```
-This instance provides methods to interact with the Backup services. Currently, it includes the main method for creating backups of specified directories in a local folder from Home Assistant environment. Then each backup file is uploaded to a Microsoft SharePoint folder.
-
-#### Create Backup
-The library provides a method which creates a backup of a specified directory in a local folder from Home Assistant environment. Then each backup file is uploaded to a Microsoft SharePoint folder: 
-
-```python
-import asyncio
-
-
-async def main():
-    # Before calling this method, you must have initialised the Backup service class ...
-    response = await backup_service.upload_backup_to_sharepoint(
-        local_backup_path=LOCAL_BACKUP_PATH,
-        sharepoint_folder_path=SHAREPOINT_FOLDER_PATH,
-    )
-    return response
-
-
-asyncio.run(main())
-```
-**Notes:**
-- Ensure that the `local_backup_path` exists and contains the files you want to back up. It is a relative path from the Home Assistant configuration directory.
-- The `sharepoint_folder_path` should be the path to the folder in SharePoint where you want to upload the backup files. For example, if your url is `https://yourtenant.sharepoint.com/sites/yoursite/Shared Documents/Backups`, the folder path would be `sites/yoursite/Shared Documents/Backups`.
 
 #### Export Files
-Use `export_files` to synchronize a local folder (under the configured backup root) with a specific SharePoint destination. This method validates the local folder, compares local files with SharePoint (existence and file size) and uploads only the missing or size-different files.
 
-Example usage:
+Use `export_files` to upload files from an existing local folder under `config.local_backup_path` to Databricks. It compares file names and sizes and uploads missing files or files with differing nonzero sizes. A zero size on either side is treated as unknown and does not by itself trigger an upload.
+
 ```python
 import asyncio
 
 
 async def main():
-    # backup_service was obtained from SaviiaAPI as shown above
-    # `local_folder_path` is a relative path under your configured local backup root,
-    # for example: "thies/AVG"
-    response = await backup_service.export_files(
+    return await backup_service.export_files(
         local_folder_path="thies/AVG",
-        sharepoint_destination_path="Shared%20Documents/General/Test_Raspberry/saviia-local-backup/thies/AVG",
+        cloud_provider_destination_path=cloud_destination,
     )
-    return response
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
 
-Notes:
-- `local_folder_path`: relative folder under your configured `local_backup_path` where files are read from.
-- `sharepoint_destination_path`: the exact destination folder in SharePoint where files will be created/uploaded. The controller will add the server-relative prefix (e.g. `/sites/{site_name}`) when required.
-- The controller is responsible for instantiating the external clients (SharePoint, file reader, directory client); the use case only contains orchestration and business logic.
-- If SharePoint reports a file size of zero for a remote item, the code treats that as "unknown" and will not force a resync based solely on a zero-length remote size. Only files that are missing in SharePoint or that have differing non-zero sizes will be uploaded.
+The source folder must exist and contain files only; this operation does not recursively export subdirectories or download files from FTP.
+
+The current backup exporter appends the **joined local source path**, with leading/trailing slashes stripped, to the cloud destination:
+
+- With `local_backup_path="saviia-local-backup"`, this example uploads to `/Volumes/catalog/schema/volume/echo/saviia-local-backup/thies/AVG`.
+- With `local_backup_path="/config/saviia-local-backup"`, it uploads to `/Volumes/catalog/schema/volume/echo/config/saviia-local-backup/thies/AVG`.
+
+This differs from THIES synchronization, which appends only the backup root's name. Account for this when choosing local and cloud paths. Do not pass the already-expanded destination to `export_files`, as the local path would be appended again.
+
+### Migrating from SharePoint
+
+- Supply `databricks_host_url` and `databricks_api_key` instead of SharePoint credentials when using `SaviiaAPI`.
+- Replace `sharepoint_destination_path` with `cloud_provider_destination_path` and use a `/Volumes/...` destination.
+- Replace `upload_backup_to_sharepoint` with `export_files` for uploading existing local files.
+- Replace `update_thies_data` with the THIES status and post methods described above.
+- Keep the local backup root in the configuration instead of passing it to `post_thies_data`.
+
+The lower-level `CloudClient` still includes a SharePoint adapter, but the `SaviiaAPI` workflow documented here uses Databricks. When constructing service configurations directly, `SaviiaBackupConfig.client_name` defaults to `"databricks"`; `SaviiaThiesConfig` requires `cloud_client_name="databricks"`.
 
 ### Access Netcamera Services
-The Netcamera service provides camera capture rate configuration based on meteorological data such as precipitation and precipitation probability.
 
-This service uses the Weather Client library, currently implemented with OpenMeteo, and is designed to be extensible for future weather providers.
+Set `latitude` and `longitude` in `SaviiaAPIConfig` before creating the client. Netcamera reads them from its service configuration; `get_camera_rates()` takes no arguments.
 
-```python 
-netcamera_service = api_client.get("netcamera")
+```python
+from dataclasses import replace
+
+camera_config = replace(config, latitude=-33.45, longitude=-70.66)
+netcamera_service = SaviiaAPI(camera_config).get("netcamera")
 ```
+
 #### Get Camera Rates
-Returns photo and video capture rates for a camera installed at a given geographic location.
-```python 
+
+```python
 import asyncio
 
 
 async def main():
-    lat, lon = 10.511223, 20.123123
-    camera_rates = await netcamera_service.get_camera_rates(latitude=lat, longitude=lon)
-    return camera_rates
+    return await netcamera_service.get_camera_rates()
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
-Example output:
-```python 
-{
-    "status": "A",  # B or C
-    "photo_rate": number,  # in minutes
-    "video_rate": number,  # in minutes
-}
-```
-#### Description:
-* The capture rate is calculated using meteorological metrics:
-    * Precipitation
-    * Precipitation probability
-* The resulting configuration determines the camera capture frequency.
 
-#### Status variable
-The status variable is classified based on weather conditions (currently, precipitation and precipitation probability) at the camera's location:
+The response contains `message`, a numeric HTTP-style `status`, and `metadata`. On success, `metadata` contains the weather category (`status`: `A`, `B`, or `C`), `photo_rate`, `video_rate`, `precipitation_probability`, and `precipitation`.
 
-| Status | 1 photo capture per | 1 video capture per |
+Rates are intervals in minutes, calculated from Open-Meteo precipitation data:
+
+| Weather category | Photo interval | Video interval |
 | --- | --- | --- |
-| A | 12 h | 12 h |
-| B | 30 min | 3 h |
-| C | 5 min | 1 h |
-
+| A | 720 minutes | 720 minutes |
+| B | 30 minutes | 180 minutes |
+| C | 5 minutes | 60 minutes |
 
 ### Access Task System Services
-To interact with the Task System services, you can access the `tasks` attribute of the `SaviiaAPI` instance:
-```python
-tasks_service = api_client.get("tasks")
-```
-This instance provides methods to manage tasks in specified channels. Note that this service requires an existing bot to be set up in the Discord server to function properly.
 
-For using the Tasks Services, you need to provide the additional parameters `bot_token` and `task_channel_id` in the `SaviiaAPIConfig` configuration class:
+Tasks are stored as messages in a Discord channel. Configure the bot and channel when creating `SaviiaAPI`, then obtain the service through `get("tasks")`. Service methods do not accept a `config` argument.
 
 ```python
-config = SaviiaAPIConfig(
-    ... 
-    task_channel_id=TASK_CHANNEL_ID,
-    bot_token=BOT_TOKEN
+from dataclasses import replace
+
+# Reuse the base configuration from the initialization example.
+tasks_config = replace(
+    config,
+    tasks_channel_id=os.environ["DISCORD_TASKS_CHANNEL_ID"],
+    bot_token=os.environ["DISCORD_BOT_TOKEN"],
+    email_address=os.environ.get("TASKS_EMAIL_ADDRESS", ""),
+    email_password=os.environ.get("TASKS_EMAIL_PASSWORD", ""),
 )
+tasks_service = SaviiaAPI(tasks_config).get("tasks")
 ```
-The `task_channel_id` is the ID of the Discord channel where tasks will be created, updated, and deleted. The `bot_token` is the token of the Discord bot that has permissions to manage messages in that channel.
 
+The public `SaviiaAPIConfig` field is **`tasks_channel_id`** (plural). The library maps it to `task_channel_id` in the internal `SaviiaTasksConfig`. The Discord bot needs access to the configured channel and permissions for the requested message/reaction operations.
+
+Email credentials are used when notifying assignees by email. The current task controllers use `smtp.gmail.com` on port `587`.
 
 #### Create Task
-Create a new task in a Discord channel with the following properties:
+
+Use `title`, `creation`, and `deadline` for task data. Dates are parsed as `YYYY-MM-DD` by the current validators.
+
 ```python
 import asyncio
 
+task_data = {
+    "title": "Inspect the THIES station",
+    "creation": "2026-11-11",
+    "deadline": "2026-11-30",
+    "execution": "",
+    "priority": 2,
+    "assignee": "Station operator",
+    "assignee_email": "",
+    "assignee_discord_username": "",
+    "description": "Check the sensor and its local backup.",
+    "periodicity": "Sin periodicidad",
+    "category": "Maintenance",
+}
+
 
 async def main():
-    response = await tasks_service.create_task(
-        task={
-            "name": "Task Title",
-            "description": "Task Description",
-            "due_date": "2024-12-31T23:59:59Z",
-            "priority": 1,
-            "assignee": "user_name",
-            "category": "work",
-        },
-        images=[
-            {"name": "image.png", "type": "image/png", "data": "base64_encoded_data"}
-        ],
-        config=config,
-    )
-    return response
+    return await tasks_service.create_task(task=task_data, images=[])
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
-**Notes:**
-- `name`, `description`, `due_date`, `priority`, `assignee`, and `category` are required.
-- `images` is optional and accepts up to 10 images.
-- `due_date` must be in ISO 8601 format (datetime).
-- `priority` must be an integer between 1 and 4.
+
+Required task fields are `title`, `creation`, `deadline`, `priority` (integer from 1 to 4), and `assignee`. Other fields shown above may be empty strings. The date order must satisfy `creation <= execution <= deadline`; an empty `execution` is treated as the creation date for validation.
+
+`images` is optional and accepts up to 10 dictionaries containing `name`, `type`, and Base64-encoded `data`. A successful create response provides the Discord message ID as `response["metadata"]["task_id"]`. Save that ID for updates and deletion. Providing an `assignee_email` also requests an assignment email.
 
 #### Update Task
-Update an existing task or mark it as completed. The task will be reacted with ✅ if completed or 📌 if pending:
+
+Provide the complete task data and the saved ID under `tid`, together with the `completed` flag:
+
 ```python
 import asyncio
 
+updated_task = {
+    **task_data,
+    "tid": "123456789012345678",  # Replace with metadata["task_id"] from creation.
+    "execution": "2026-11-12",
+    "description": "Sensor and local backup checked.",
+}
+
 
 async def main():
-    response = await tasks_service.update_task(
-        task={
-            "id": "task_id",
-            "name": "Updated Title",
-            "description": "Updated Description",
-            "due_date": "2024-12-31T23:59:59Z",
-            "priority": 2,
-            "assignee": "updated_user_name",
-            "category": "work",
-        },  # Must contain all the attributes of the task
-        completed=True,
-        config=config,
-    )
-    return response
+    return await tasks_service.update_task(task=updated_task, completed=True)
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
 
+Updates use `tid`; creation responses and task listings use `task_id`. The update method replaces task details, so keep all fields from the example rather than sending only the changed fields. The task is marked with ✅ when completed and 📌 when pending.
 
 #### Delete Task
-Delete an existing task from a Discord channel by providing its ID:
+
 ```python
 import asyncio
 
 
 async def main():
-    response = await tasks_service.delete_task(task_id="task_id", config=config)
-    return response
+    return await tasks_service.delete_task(task_id="123456789012345678")
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
 
 #### Get Tasks
-Retrieve tasks from a Discord channel with optional filtering and sorting:
+
 ```python
 import asyncio
 
 
 async def main():
-    response = await tasks_service.get_tasks(
+    return await tasks_service.get_tasks(
         params={
-            "sort": "desc",
             "completed": False,
-            "fields": ["title", "due_date", "priority"],
-            "after": 1000000,
-            "before": 2000000,
-        },
-        config=config,
+            "fields": ["title", "deadline", "priority", "assignee"],
+        }
     )
-    return response
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
-**Notes:**
-- `sort`: Order results by `asc` or `desc`.
-- `completed`: Filter tasks by completion status.
-- `fields`: Specify which fields to include in the response. Must include `title` and `due_date`.
-- `after` and `before`: Filter tasks by timestamp ranges.
+
+Successful results are in `response["metadata"]["tasks"]`.
+
+- Omit `params` to retrieve tasks without additional filtering or field selection, including their `task_id`.
+- `completed` filters by completion status.
+- `fields` selects from `title`, `deadline`, `priority`, `description`, `periodicity`, and `assignee`; the list must contain `title` and `deadline`.
+- The schema also accepts `sort`, `after`, and `before`, but their current implementation references the legacy `task.due_date` structure. They are not reliable with the current task format and are omitted from this example.
 
 #### Get Pending Tasks
-To retrieve pending (uncompleted) tasks and optionally download attachments or trigger notifications, call `get_pending_tasks`:
 
 ```python
 import asyncio
 
 
 async def main():
-    # download: if True, attachments for pending tasks will be downloaded
-    # notify: if True, the configured bot will send notifications for pending tasks
-    response = await tasks_service.get_pending_tasks(download=False, notify=False)
-    return response
+    return await tasks_service.get_pending_tasks(download=False, notify=False)
 
 
-asyncio.run(main())
+print(asyncio.run(main()))
 ```
-The notifications are sent as messages in the configured Discord channel, mentioning the assignee of each pending task with its title and due date.
 
+The response groups tasks into `metadata["overdue"]` and `metadata["ontime"]`.
 
+- `download=True` writes a dated Excel report under `<local_backup_path>/saviia-tasks/YYYYMMDD_tasks.xlsx`. It does not download task attachments. The local backup root must exist, and the environment needs a pandas-compatible Excel writer such as `openpyxl`.
+- `notify=True` emails each assignee with their pending-task summary, using `assignee_email`. Assignees without an email address are skipped. It does not post a pending-task summary to Discord.
 
 ## Contributing
-If you're interested in contributing to this project, please follow the contributing guidelines. By contributing to this project, you agree to abide by its terms.
-Contributions are welcome and appreciated!
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and release instructions. Run `make test` and `make lint` before submitting changes.
 
 ## Related Projects
-* [ECHO](https://github.com/raxlab/echo): A Home Assistant custom integration for Edge Computing and Hardware Orchestration that uses this library.
+
+- [ECHO](https://github.com/raxlab/echo): A Home Assistant custom integration for Edge Computing and Hardware Orchestration that uses this library.
 
 ## License
 
