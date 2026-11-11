@@ -18,7 +18,6 @@ from saviialib.services.thies.use_cases.types.post_thies_data_types import (
     PostThiesDataUseCaseInput,
 )
 
-
 CLOUD_ROOT = "/Volumes/arquitectura_dev/saviia_test/archivos_telemetry"
 LOCAL_ROOT = "saviia-local-backup"
 
@@ -120,9 +119,7 @@ class TestThiesInventoryComponent(unittest.IsolatedAsyncioTestCase):
 
         async def list_files(args):
             filename = (
-                "avg.bin"
-                if args.folder_relative_url.endswith("/AVG")
-                else "ext.bin"
+                "avg.bin" if args.folder_relative_url.endswith("/AVG") else "ext.bin"
             )
             return [{"name": filename, "file_size": 10, "is_directory": False}]
 

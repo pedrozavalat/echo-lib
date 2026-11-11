@@ -6,9 +6,9 @@ import pytest
 
 if "pandas" not in sys.modules:
     pandas_stub = types.ModuleType("pandas")
-    setattr(pandas_stub, "DataFrame", type("DataFrame", (), {}))
-    setattr(pandas_stub, "Series", type("Series", (), {}))
-    setattr(pandas_stub, "read_csv", lambda *args, **kwargs: None)
+    pandas_stub.DataFrame = type("DataFrame", (), {})
+    pandas_stub.Series = type("Series", (), {})
+    pandas_stub.read_csv = lambda *args, **kwargs: None
     sys.modules["pandas"] = pandas_stub
 if "numpy" not in sys.modules:
     sys.modules["numpy"] = types.ModuleType("numpy")
@@ -141,7 +141,11 @@ async def test_export_files_use_case_should_sync_only_missing_file(
     use_case_input,
 ):
     use_case_input.directory_client.listdir = AsyncMock(
-        return_value=[(".PASS.txt", 10), ("tasks.xlsx", 200), ("20260331_tasks.xlsx", 300)]
+        return_value=[
+            (".PASS.txt", 10),
+            ("tasks.xlsx", 200),
+            ("20260331_tasks.xlsx", 300),
+        ]
     )
     use_case_input.directory_client.path_exists = AsyncMock(side_effect=[True, True])
     use_case_input.directory_client.isdir = AsyncMock(
@@ -174,7 +178,11 @@ async def test_export_files_use_case_should_not_resync_when_cloud_size_is_unknow
     use_case_input,
 ):
     use_case_input.directory_client.listdir = AsyncMock(
-        return_value=[(".PASS.txt", 10), ("tasks.xlsx", 200), ("20260331_tasks.xlsx", 300)]
+        return_value=[
+            (".PASS.txt", 10),
+            ("tasks.xlsx", 200),
+            ("20260331_tasks.xlsx", 300),
+        ]
     )
     use_case_input.directory_client.path_exists = AsyncMock(side_effect=[True, True])
     use_case_input.directory_client.isdir = AsyncMock(

@@ -30,14 +30,14 @@ class SaviiaAPIConfig:
     bot_token: str = ""
     email_address: str = ""
     email_password: str = ""
-    # SharePoint 
+    # SharePoint
     sharepoint_client_id: str | None = None
     sharepoint_client_secret: str | None = None
     sharepoint_tenant_id: str | None = None
     sharepoint_tenant_name: str | None = None
     sharepoint_site_name: str | None = None
 
-    # Databricks 
+    # Databricks
     databricks_api_key: str = ""
     databricks_host_url: str = ""
 
@@ -57,6 +57,7 @@ class SharepointConfig:
     sharepoint_tenant_id: str
     sharepoint_tenant_name: str
     sharepoint_site_name: str
+
 
 @dataclass
 class DatabricksConfig:

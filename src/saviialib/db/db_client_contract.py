@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import Any
 
 from .types.db_client_types import ExecuteArgs, FetchAllArgs, FetchOneArgs
 
@@ -12,7 +12,6 @@ class DbClientContract(ABC):
         Returns:
             None: The connection is initialized and ready for operations.
         """
-        pass
 
     @abstractmethod
     async def close(self) -> None:
@@ -21,7 +20,6 @@ class DbClientContract(ABC):
         Returns:
             None: The connection is closed and resources are released.
         """
-        pass
 
     @abstractmethod
     async def execute(self, args: ExecuteArgs) -> None:
@@ -35,10 +33,9 @@ class DbClientContract(ABC):
         Returns:
             None: The statement is executed without returning rows.
         """
-        pass
 
     @abstractmethod
-    async def fetch_all(self, args: FetchAllArgs) -> List[Any]:
+    async def fetch_all(self, args: FetchAllArgs) -> list[Any]:
         """Execute a query and return all matching rows.
 
         Args:
@@ -49,7 +46,6 @@ class DbClientContract(ABC):
         Returns:
             List[Any]: All rows returned by the query.
         """
-        pass
 
     @abstractmethod
     async def fetch_one(self, args: FetchOneArgs) -> Any:
@@ -63,4 +59,3 @@ class DbClientContract(ABC):
         Returns:
             Any: The first row returned by the query, or ``None`` when no row exists.
         """
-        pass

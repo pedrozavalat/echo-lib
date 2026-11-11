@@ -1,9 +1,10 @@
-from .types.delete_task_types import DeleteTaskUseCaseInput, DeleteTaskUseCaseOutput
-from saviialib.libs.log_client import LogClient, LogClientArgs, LogStatus, DebugArgs
+from saviialib.libs.log_client import DebugArgs, LogClient, LogClientArgs, LogStatus
 from saviialib.libs.notification_client import (
     DeleteNotificationArgs,
 )
 from saviialib.services.tasks.presenters import TaskNotificationPresenter
+
+from .types.delete_task_types import DeleteTaskUseCaseInput, DeleteTaskUseCaseOutput
 
 
 class DeleteTaskUseCase:

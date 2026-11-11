@@ -24,7 +24,7 @@ class SaviiaThiesConfig:
 
     local_backup_path: str
     logger: Logger
-    cloud_client_name: Literal["sharepoint_rest_api", "databricks"] 
+    cloud_client_name: Literal["sharepoint_rest_api", "databricks"]
     sharepoint_client_id: str = ""
     sharepoint_client_secret: str = ""
     sharepoint_tenant_id: str = ""

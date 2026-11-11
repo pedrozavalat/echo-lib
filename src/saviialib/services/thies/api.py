@@ -1,22 +1,23 @@
-from typing import Any, Dict, List
+from typing import Any
+
 from saviialib.general_types.api.saviia_thies_api_types import (
     SaviiaThiesConfig,
 )
+from saviialib.libs.log_client import (
+    DebugArgs,
+    ErrorArgs,
+    LogClient,
+    LogClientArgs,
+    LogStatus,
+)
+
 from .controllers import (
-    UpdateThiesDataControllerInput,
     DetectFailuresController,
     DetectFailuresControllerInput,
     GetThiesDataController,
     GetThiesDataControllerInput,
     PostThiesDataController,
     PostThiesDataControllerInput,
-)
-from saviialib.libs.log_client import (
-    LogClient,
-    LogClientArgs,
-    LogStatus,
-    DebugArgs,
-    ErrorArgs,
 )
 
 
@@ -72,8 +73,8 @@ class SaviiaThiesAPI:
         need_to_sync: bool,
         need_to_backup: bool,
         cloud_provider_destination_path: str,
-        ftp_server_folders_path: List[str],
-    ) -> Dict[str, Any]:
+        ftp_server_folders_path: list[str],
+    ) -> dict[str, Any]:
         """Execute THIES backup and/or synchronisation using a precomputed status.
 
         :param bool need_to_sync: Whether the local backup must be synchronized to SharePoint.
@@ -149,7 +150,7 @@ class SaviiaThiesAPI:
         db_name: str = "",
         user: str = "",
         pwd: str = "",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         controller = DetectFailuresController(
             DetectFailuresControllerInput(
                 self.config,

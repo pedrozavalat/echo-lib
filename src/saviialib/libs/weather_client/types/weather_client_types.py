@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from typing import Optional, Literal
 from enum import Enum
+from typing import Literal
 
 
 @dataclass
@@ -9,7 +9,7 @@ class WeatherClientInitArgs:
     latitude: float
     longitude: float
     timezone: str = ""
-    api_key: Optional[str] = ""
+    api_key: str | None = ""
 
 
 class WeatherMetric(Enum):
@@ -37,5 +37,5 @@ class WeatherQuery:
 @dataclass
 class ForecastArgs:
     query: WeatherQuery
-    start_date: Optional[int | str | float]
-    end_date: Optional[int | str | float]
+    start_date: int | str | float | None
+    end_date: int | str | float | None

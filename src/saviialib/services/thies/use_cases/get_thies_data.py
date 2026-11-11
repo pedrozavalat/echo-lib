@@ -1,4 +1,5 @@
-from typing import Dict, Mapping, Set
+from collections.abc import Mapping
+from typing import ClassVar
 
 from saviialib.general_types.error_types.api.saviia_api_error_types import (
     BackupSourcePathError,
@@ -28,7 +29,7 @@ from saviialib.services.thies.use_cases.types.get_thies_data_types import (
 class GetThiesDataUseCase:
     """Inspect THIES inventories and report required backup and sync work."""
 
-    DEFAULT_FTP_FOLDERS = ["/ARCH_AV1", "/ARCH_EX1"]
+    DEFAULT_FTP_FOLDERS: ClassVar[list[str]] = ["/ARCH_AV1", "/ARCH_EX1"]
 
     def __init__(self, input: GetThiesDataUseCaseInput):
         self.cloud_client = input.cloud_client
@@ -77,13 +78,13 @@ class GetThiesDataUseCase:
 
     async def _fetch_local_backup_files(
         self,
-    ) -> Dict[str, int | Set[str] | Dict[str, int]]:
+    ) -> dict[str, int | set[str] | dict[str, int]]:
         return await self.inventory.get_local_summary(
             ensure_structure=True,
             require_root=True,
         )
 
-    async def _fetch_cloud_total_files(self) -> Set[tuple[str, int]]:
+    async def _fetch_cloud_total_files(self) -> set[tuple[str, int]]:
         if not self.cloud_provider_destination_path:
             raise BackupSourcePathError(
                 reason="Cloud provider destination path is not configured"
@@ -93,7 +94,7 @@ class GetThiesDataUseCase:
             wrap_errors=False,
         )
 
-    async def _fetch_thies_total_files(self) -> Set[tuple[str, int]]:
+    async def _fetch_thies_total_files(self) -> set[tuple[str, int]]:
         try:
             return await self.inventory.get_ftp_files(self.DEFAULT_FTP_FOLDERS)
         except ThiesConnectionError as error:
@@ -101,8 +102,8 @@ class GetThiesDataUseCase:
 
     def _validate_pending_files(
         self,
-        thies_files: Set[tuple[str, int]],
-        cloud_files: Set[tuple[str, int]],
+        thies_files: set[tuple[str, int]],
+        cloud_files: set[tuple[str, int]],
         backup_files: Mapping[str, object],
     ) -> dict[str, int | bool]:
         plan = self.planner.create_plan(

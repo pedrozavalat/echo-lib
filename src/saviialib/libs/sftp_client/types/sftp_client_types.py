@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Optional, List
 
 
 @dataclass
 class SFTPClientInitArgs:
     client_name: str
-    password: Optional[str]
+    password: str | None
     username: str
     ssh_key_path: str
     host: str = "localhost"
@@ -21,4 +20,4 @@ class ListfilesArgs:
 class DownloadfilesArgs:
     source_path: str
     destination_path: str
-    files_to_download: List[str] = field(default_factory=list)
+    files_to_download: list[str] = field(default_factory=list)

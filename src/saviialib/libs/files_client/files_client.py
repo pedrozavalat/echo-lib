@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from .clients.aiofiles_client import AioFilesClient
 from .clients.csv_client import CsvClient
 from .files_client_contract import FilesClientContract
@@ -5,7 +7,7 @@ from .types.files_client_types import FilesClientInitArgs, ReadArgs, WriteArgs
 
 
 class FilesClient(FilesClientContract):
-    CLIENTS = {"aiofiles_client", "csv_client"}
+    CLIENTS: ClassVar[set[str]] = {"aiofiles_client", "csv_client"}
 
     def __init__(self, args: FilesClientInitArgs) -> None:
         if args.client_name not in FilesClient.CLIENTS:

@@ -1,16 +1,18 @@
-from typing import Dict, Any
+from typing import Any
+
 from saviialib.general_types.api.saviia_tasks_api_types import SaviiaTasksConfig
+
 from .controllers import (
     CreateTaskController,
     CreateTaskControllerInput,
-    UpdateTaskController,
-    UpdateTaskControllerInput,
     DeleteTaskController,
     DeleteTaskControllerInput,
-    GetTasksController,
-    GetTasksControllerInput,
     GetPendingTasksController,
     GetPendingTasksControllerInput,
+    GetTasksController,
+    GetTasksControllerInput,
+    UpdateTaskController,
+    UpdateTaskControllerInput,
 )
 
 
@@ -19,8 +21,8 @@ class SaviiaTasksAPI:
         self.config = config
 
     async def update_task(
-        self, task: Dict[str, Any], completed: bool
-    ) -> Dict[str, Any]:
+        self, task: dict[str, Any], completed: bool
+    ) -> dict[str, Any]:
         """
         Updates a task with the provided data and completion status.
 
@@ -38,7 +40,7 @@ class SaviiaTasksAPI:
         response = await controller.execute()
         return response.__dict__
 
-    async def delete_task(self, task_id: str) -> Dict[str, Any]:
+    async def delete_task(self, task_id: str) -> dict[str, Any]:
         """
         Deletes a task by its ID.
 
@@ -54,7 +56,9 @@ class SaviiaTasksAPI:
         response = await controller.execute()
         return response.__dict__
 
-    async def create_task(self, task: dict, images: list = []) -> Dict[str, Any]:
+    async def create_task(
+        self, task: dict, images: list | None = None
+    ) -> dict[str, Any]:
         """
         Creates a new task with the provided task data and associated images.
 
@@ -66,13 +70,15 @@ class SaviiaTasksAPI:
         :return: A dictionary representation of the create response
         :rtype: Dict[str, Any]
         """
+        if images is None:
+            images = []
         controller = CreateTaskController(
             CreateTaskControllerInput(task, images, self.config)
         )
         response = await controller.execute()
         return response.__dict__
 
-    async def get_tasks(self, params={}) -> Dict[str, Any]:
+    async def get_tasks(self, params: dict | None = None) -> dict[str, Any]:
         """
         Retrieves a list of tasks based on the provided parameters.
 
@@ -85,13 +91,15 @@ class SaviiaTasksAPI:
             - `after` and `before` (str): Filter tasks by timestamp ranges.
         :return: A dictionary representation of the tasks response containing task data
         """
+        if params is None:
+            params = {}
         controller = GetTasksController(GetTasksControllerInput(self.config, params))
         response = await controller.execute()
         return response.__dict__
 
     async def get_pending_tasks(
         self, download: bool = False, notify: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Retrieves pending tasks organized by deadline status and sorted by priority.
 

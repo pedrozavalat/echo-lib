@@ -1,36 +1,39 @@
-from .types.update_task_types import (
-    UpdateTaskControllerInput,
-    UpdateTaskControllerOutput,
-)
 from http import HTTPStatus
+from typing import ClassVar
+
 from saviialib.general_types.error_types.api.saviia_api_error_types import (
     ValidationError,
-)
-from saviialib.services.tasks.entities import SaviiaTask
-from saviialib.services.tasks.use_cases.update_task import UpdateTaskUseCase
-from saviialib.services.tasks.use_cases.types.update_task_types import (
-    UpdateTaskUseCaseInput,
-)
-from .validators.update_task_validator import UpdateTaskValidator
-from saviialib.libs.notification_client import (
-    NotificationClient,
-    NotificationClientInitArgs,
-)
-from saviialib.libs.log_client import (
-    LogClient,
-    LogClientArgs,
-    LogStatus,
-    DebugArgs,
-    ErrorArgs,
 )
 from saviialib.libs.email_client import (
     EmailClient,
     EmailClientInitArgs,
 )
+from saviialib.libs.log_client import (
+    DebugArgs,
+    ErrorArgs,
+    LogClient,
+    LogClientArgs,
+    LogStatus,
+)
+from saviialib.libs.notification_client import (
+    NotificationClient,
+    NotificationClientInitArgs,
+)
+from saviialib.services.tasks.entities import SaviiaTask
+from saviialib.services.tasks.use_cases.types.update_task_types import (
+    UpdateTaskUseCaseInput,
+)
+from saviialib.services.tasks.use_cases.update_task import UpdateTaskUseCase
+
+from .types.update_task_types import (
+    UpdateTaskControllerInput,
+    UpdateTaskControllerOutput,
+)
+from .validators.update_task_validator import UpdateTaskValidator
 
 
 class UpdateTaskController:
-    FIELDS = [
+    FIELDS: ClassVar[list[str]] = [
         "tid",
         "title",
         "deadline",

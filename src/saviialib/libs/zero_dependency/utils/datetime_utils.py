@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Optional
 from zoneinfo import ZoneInfo
 
 
@@ -65,14 +64,12 @@ def str_to_timestamp(
 
 
 def is_within_date_range(
-    date: str, after: Optional[int] = None, before: Optional[int] = None
+    date: str, after: int | None = None, before: int | None = None
 ) -> bool:
     date_ts = str_to_timestamp(date)
     if after and date_ts < after:
         return False
-    if before and date_ts > before:
-        return False
-    return True
+    return not (before and date_ts > before)
 
 
 def difference(date: datetime, n: int) -> datetime:

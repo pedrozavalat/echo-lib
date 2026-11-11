@@ -1,11 +1,13 @@
+from collections.abc import Iterator
+from typing import ClassVar
+
 from .client.os_client import OsClient
 from .directory_client_contract import DirectoryClientContract
 from .types.directory_client_types import DirectoryClientArgs
-from typing import Iterator
 
 
 class DirectoryClient(DirectoryClientContract):
-    CLIENTS = {"os_client"}
+    CLIENTS: ClassVar[set[str]] = {"os_client"}
 
     def __init__(self, args: DirectoryClientArgs) -> None:
         if args.client_name not in DirectoryClient.CLIENTS:

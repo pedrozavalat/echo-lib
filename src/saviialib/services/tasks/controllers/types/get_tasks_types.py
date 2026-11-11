@@ -1,16 +1,16 @@
 from dataclasses import dataclass, field
-from typing import Dict
+
 from saviialib.general_types.api.saviia_tasks_api_types import SaviiaTasksConfig
 
 
 @dataclass
 class GetTasksControllerInput:
     config: SaviiaTasksConfig
-    params: Dict[str, str | bool | dict | list] = field(default_factory=dict)
+    params: dict[str, str | bool | dict | list] = field(default_factory=dict)
 
 
 @dataclass
 class GetTasksControllerOutput:
     message: str
     status: int
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)

@@ -1,23 +1,24 @@
-from typing import Dict, List
+import json
+import ssl
+
+import certifi
+from aiohttp import ClientError, ClientSession, FormData, TCPConnector
+
+from saviialib.libs.directory_client import DirectoryClient, DirectoryClientArgs
+from saviialib.libs.files_client import FilesClient, FilesClientInitArgs, ReadArgs
+from saviialib.libs.log_client import DebugArgs, LogClient, LogClientArgs, LogStatus
 from saviialib.libs.notification_client.notification_client_contract import (
     NotificationClientContract,
 )
 from saviialib.libs.notification_client.types.notification_client_types import (
-    UpdateNotificationArgs,
-    NotifyArgs,
-    NotificationClientInitArgs,
-    ReactArgs,
-    FindNotificationArgs,
-    DeleteReactionArgs,
     DeleteNotificationArgs,
+    DeleteReactionArgs,
+    FindNotificationArgs,
+    NotificationClientInitArgs,
+    NotifyArgs,
+    ReactArgs,
+    UpdateNotificationArgs,
 )
-from saviialib.libs.directory_client import DirectoryClient, DirectoryClientArgs
-from saviialib.libs.files_client import FilesClient, FilesClientInitArgs, ReadArgs
-from saviialib.libs.log_client import LogClient, LogClientArgs, DebugArgs, LogStatus
-from aiohttp import ClientError, ClientSession, TCPConnector, FormData
-import ssl
-import certifi
-import json
 
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 
@@ -35,7 +36,7 @@ class DiscordClient(NotificationClientContract):
             )
         )
         self.webhook_url = args.webhook_url
-        self.is_bot = True if self.webhook_url == "" else False
+        self.is_bot = self.webhook_url == ""
 
     async def connect(self) -> None:
         if self.session:
@@ -58,7 +59,7 @@ class DiscordClient(NotificationClientContract):
             await self.session.close()
             self.session = None
 
-    async def list_notifications(self) -> List[Dict[str, str]]:
+    async def list_notifications(self) -> list[dict[str, str]]:
         self.logger.method_name = "list_notifications"
         self.logger.debug(DebugArgs(LogStatus.STARTED))
         if not self.is_bot:

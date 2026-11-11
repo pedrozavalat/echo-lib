@@ -22,7 +22,7 @@ class CloudClientListFoldersArgs:
 class CloudClientUploadFileArgs:
     folder_relative_url: str
     file_name: str
-    file_content: bytes = bytes()
+    file_content: bytes = b""
 
 
 @dataclass

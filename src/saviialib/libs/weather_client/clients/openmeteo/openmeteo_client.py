@@ -1,14 +1,16 @@
+import ssl
+
+import certifi
+from aiohttp import ClientError, ClientSession, TCPConnector
+
+from saviialib.libs.log_client import DebugArgs, LogClient, LogClientArgs, LogStatus
 from saviialib.libs.weather_client.types.weather_client_types import (
     ForecastArgs,
     WeatherClientInitArgs,
 )
 from saviialib.libs.weather_client.weather_client_contract import WeatherClientContract
-from saviialib.libs.log_client import LogClient, LogClientArgs, DebugArgs, LogStatus
-from aiohttp import ClientError, ClientSession, TCPConnector
 
-from .openmeteo_constants import METRIC_MAP, DONT_SUPPORT_AGGR
-import ssl
-import certifi
+from .openmeteo_constants import DONT_SUPPORT_AGGR, METRIC_MAP
 
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 

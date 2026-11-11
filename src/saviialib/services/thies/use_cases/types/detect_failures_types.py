@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from logging import Logger
+
 from saviialib.db import DbClient
 from saviialib.libs.weather_client import WeatherClient
 

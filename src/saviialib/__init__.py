@@ -1,28 +1,29 @@
 # read version from installed package
 from importlib.metadata import version
+from typing import ClassVar
 
 __version__ = version("saviialib")
 
-from .general_types.api.saviia_api_types import SaviiaAPIConfig
-
-from typing import Dict, Type, Any, overload, Literal, List
+from typing import Any, Literal, overload
 
 from saviialib.services import (
-    SaviiaThiesConfig,
-    SaviiaThiesAPI,
     SaviiaBackupAPI,
     SaviiaBackupConfig,
     SaviiaNetcameraAPI,
     SaviiaNetcameraConfig,
     SaviiaTasksAPI,
     SaviiaTasksConfig,
+    SaviiaThiesAPI,
+    SaviiaThiesConfig,
 )
+
+from .general_types.api.saviia_api_types import SaviiaAPIConfig
 
 __all__ = ["SaviiaAPI", "SaviiaAPIConfig"]
 
 
 class SaviiaAPI:
-    API_REGISTRY: Dict[str, Type] = {
+    API_REGISTRY: ClassVar[dict[str, type]] = {
         "thies": SaviiaThiesAPI,
         "backup": SaviiaBackupAPI,
         "netcamera": SaviiaNetcameraAPI,
@@ -52,7 +53,7 @@ class SaviiaAPI:
                 "tasks": SaviiaTasksConfig(...),
             }
         """
-        self._instances: Dict[str, Any] = {}
+        self._instances: dict[str, Any] = {}
 
         for name, api_class in SaviiaAPI.API_REGISTRY.items():
             if name == "thies":
@@ -96,6 +97,6 @@ class SaviiaAPI:
         except KeyError:
             raise ValueError(f"API '{name}' is not registered or not configured.")
 
-    def list_available(self) -> List[str]:
+    def list_available(self) -> list[str]:
         """List of available registered APIs."""
         return list(self._instances.keys())

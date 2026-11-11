@@ -1,7 +1,6 @@
 import os
 from typing import Literal
 
-
 ThiesCategory = Literal["AVG", "EXT"]
 THIES_CATEGORIES: tuple[ThiesCategory, ThiesCategory] = ("AVG", "EXT")
 

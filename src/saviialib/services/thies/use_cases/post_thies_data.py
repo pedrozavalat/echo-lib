@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any
 
 from saviialib.general_types.error_types.api.saviia_api_error_types import (
     BackupSourcePathError,
@@ -42,7 +42,7 @@ class PostThiesDataUseCase:
         self.cloud_provider_destination_path = input.cloud_provider_destination_path
         self.ftp_server_folders_path = input.ftp_server_folders_path
         self.local_backup_path = input.local_backup_source_path
-        self.uploading: Set[str] = set()
+        self.uploading: set[str] = set()
         self.os_client = input.directory_client
         self.files_client = input.files_client
         self.log_client = LogClient(
@@ -118,34 +118,34 @@ class PostThiesDataUseCase:
         """Backward-compatible alias for the provider-neutral validation method."""
         await self._validate_cloud_destination()
 
-    async def fetch_cloud_file_names(self) -> Set[Tuple[str, int]]:
+    async def fetch_cloud_file_names(self) -> set[tuple[str, int]]:
         return await self.inventory.get_cloud_files(ensure_structure=True)
 
-    async def fetch_thies_file_names(self) -> Set[Tuple[str, int]]:
+    async def fetch_thies_file_names(self) -> set[tuple[str, int]]:
         return await self.inventory.get_ftp_files()
 
-    async def fetch_local_backup_file_names(self) -> Set[Tuple[str, int]]:
+    async def fetch_local_backup_file_names(self) -> set[tuple[str, int]]:
         return await self.inventory.get_local_files()
 
-    async def fetch_local_backup_file_content(self) -> Dict[str, bytes]:
+    async def fetch_local_backup_file_content(self) -> dict[str, bytes]:
         return await self.cloud_sync.read_local_files(self.uploading)
 
     async def upload_thies_files_to_cloud(
-        self, files: Dict[str, bytes]
-    ) -> Dict[str, List[str]]:
+        self, files: dict[str, bytes]
+    ) -> dict[str, list[str]]:
         return await self.cloud_sync.upload_files(files)
 
     async def upload_thies_files_to_sharepoint(
-        self, files: Dict[str, bytes]
-    ) -> Dict[str, List[str]]:
+        self, files: dict[str, bytes]
+    ) -> dict[str, list[str]]:
         """Backward-compatible alias for the provider-neutral upload method."""
         return await self.upload_thies_files_to_cloud(files)
 
     async def _sync_pending_files(
         self,
-        local_files: Set[Tuple[str, int]],
-        cloud_files: Set[Tuple[str, int]],
-    ) -> Set[str]:
+        local_files: set[tuple[str, int]],
+        cloud_files: set[tuple[str, int]],
+    ) -> set[str]:
         return self.planner.get_files_to_sync(local_files, cloud_files)
 
     async def _extract_thies_daily_statistics(self) -> None:
@@ -154,12 +154,10 @@ class PostThiesDataUseCase:
     async def _validate_local_backup(self) -> None:
         await self.directories.ensure_local_structure()
 
-    async def _fill_local_backup(
-        self, thies_files: Set[Tuple[str, int]]
-    ) -> Set[str]:
+    async def _fill_local_backup(self, thies_files: set[tuple[str, int]]) -> set[str]:
         return await self.backup.backup_files(thies_files)
 
-    async def execute(self) -> Dict[str, Any]:
+    async def execute(self) -> dict[str, Any]:
         self._debug(
             LogStatus.STARTED,
             (
@@ -186,7 +184,7 @@ class PostThiesDataUseCase:
             )
             raise BackupSourcePathError(reason=error)
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "need_to_backup": self.need_to_backup,
             "need_to_sync": self.need_to_sync,
         }

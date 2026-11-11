@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Union, List, Dict
+from typing import Literal
 
 
 @dataclass
@@ -27,6 +27,6 @@ class ReadArgs:
 @dataclass
 class WriteArgs:
     file_name: str
-    file_content: Union[str, bytes, List[Dict]]
+    file_content: str | bytes | list[dict]
     mode: Literal["w", "wb", "a", "json", "png", "jpeg"]
     destination_path: str = ""

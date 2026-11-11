@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict
+
 from .types.notification_client_types import (
+    DeleteNotificationArgs,
+    DeleteReactionArgs,
+    FindNotificationArgs,
     NotifyArgs,
     ReactArgs,
-    FindNotificationArgs,
     UpdateNotificationArgs,
-    DeleteReactionArgs,
-    DeleteNotificationArgs,
 )
 
 
 class NotificationClientContract(ABC):
     @abstractmethod
-    async def list_notifications(self) -> List[Dict[str, str | int]]:
+    async def list_notifications(self) -> list[dict[str, str | int]]:
         pass
 
     @abstractmethod

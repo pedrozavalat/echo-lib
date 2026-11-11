@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any
+
 from saviialib.general_types.api.saviia_tasks_api_types import SaviiaTasksConfig
 
 
 @dataclass
 class UpdateTaskControllerInput:
-    task: Dict[str, Any]
+    task: dict[str, Any]
     completed: bool
     config: SaviiaTasksConfig
 
@@ -14,4 +15,4 @@ class UpdateTaskControllerInput:
 class UpdateTaskControllerOutput:
     message: str
     status: int
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)

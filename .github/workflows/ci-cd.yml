@@ -23,9 +23,6 @@ jobs:
       - name: Install package
         run: poetry install
 
-      - name: Install pytest-cov
-        run: poetry add --dev pytest-cov
-
       - name: Test with pytest
         run: poetry run pytest tests --cov=saviialib --cov-report=xml
 
@@ -37,11 +34,11 @@ jobs:
 
       # - name: Build documentation
       #   run: poetry run make html --directory docs/
-      - name: Install Ruff
-        run: poetry add --dev ruff    
-        
       - name: Check-out clean code
-        run: poetry run ruff check .
+        run: poetry run ruff check . --no-fix
+
+      - name: Check formatting
+        run: poetry run ruff format . --check
 
   cd:
     permissions:

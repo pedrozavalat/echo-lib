@@ -1,9 +1,9 @@
 # Internal modules
-from saviialib.libs.schema_validator_client.schema_validator_contract import (
-    SchemaValidatorContract,
-)
 from saviialib.libs.schema_validator_client.clients.jsonschema.jsonschema_client import (
     JsonschemaClient,
+)
+from saviialib.libs.schema_validator_client.schema_validator_contract import (
+    SchemaValidatorContract,
 )
 
 
